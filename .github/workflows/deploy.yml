@@ -24,11 +24,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-        working-directory: fidelizapp
+        # ya estamos en la carpeta del proyecto
 
       - name: Build project
         run: npm run build
-        working-directory: fidelizapp
+        # ya estamos en la carpeta del proyecto
 
       - name: Deploy to Production Server
         uses: appleboy/ssh-action@v1.0.0
@@ -41,6 +41,7 @@ jobs:
             echo "🚀 Iniciando despliegue en producción..."
 
             # Navegar al directorio del proyecto
+
             cd ${{ secrets.PROD_PROJECT_PATH || '/home/be-fidelizapp' }}
 
             echo "📥 Descargando últimos cambios..."
