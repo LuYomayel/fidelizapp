@@ -1,4 +1,5 @@
-import { Client, Admin, Business, Reward } from "../../shared";
+import { Client, Admin, Reward } from "@shared";
+import { IBusiness } from "@shared";
 
 export interface ClientContextType {
   client: Client | null;
@@ -10,7 +11,7 @@ export interface ClientContextType {
 
 export interface AdminContextType {
   admin: Admin | null;
-  business: Business | null;
+  business: IBusiness | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -20,7 +21,7 @@ export interface AdminContextType {
 
 export interface TarjetaDigitalProps {
   client: Client;
-  business: Business;
+  business: IBusiness;
   mostrarQR?: boolean;
 }
 

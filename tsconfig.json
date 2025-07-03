@@ -19,9 +19,11 @@
         "name": "next"
       }
     ],
-    "baseUrl": ".",
+    "baseUrl": "./",
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@shared/*": ["./shared/*"],
+      "@shared": ["./shared/index.ts"]
     }
   },
   "include": [
@@ -29,7 +31,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "../shared/**/*.ts"
+    ".next/shared/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }
