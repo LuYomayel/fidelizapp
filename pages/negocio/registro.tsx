@@ -6,12 +6,7 @@ import { Building2, ArrowLeft, Upload, Check } from "lucide-react";
 
 // Importar utilidades y tipos
 import { validarEmail, validarTelefono } from "@/utils";
-import {
-  BusinessSize,
-  BusinessType,
-  CreateBusiness,
-  CreateBusinessDto,
-} from "../../shared";
+import { BusinessSize, BusinessType, CreateBusinessDto } from "@shared";
 import { api } from "../../lib/api-client";
 
 // Componentes shadcn/ui

@@ -38,7 +38,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Client, Reward, Transaction, TransactionType } from "@/shared";
+import { Client, Reward, Transaction, TransactionType } from "@shared";
 
 export default function MiTarjeta() {
   const [cliente, setCliente] = useState<Client | null>(null);
