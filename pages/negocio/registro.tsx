@@ -159,7 +159,7 @@ export default function RegistroNegocio() {
       setTimeout(() => {
         router.push("/admin/login");
       }, 3000);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       // @ts-ignore
       setErrors({

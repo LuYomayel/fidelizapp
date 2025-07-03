@@ -6,6 +6,7 @@ import { LogIn, Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { LoginBusinessDto } from "../../shared";
 import { useAuth } from "@/contexts/AuthContext";
+import { IBusiness } from "@/shared";
 
 // TODO: Importar contexto de admin cuando esté listo
 // import { useAdmin } from '@/contexts/AdminContext';
@@ -33,7 +34,14 @@ export default function AdminLogin() {
         email: formData.email,
         password: formData.password,
       };
-      const response = await api.businesses.login(data);
+      const response = (await api.businesses.login(data)) as {
+        success: boolean;
+        message: string;
+        data: {
+          business: IBusiness;
+          token: { accessToken: string; refreshToken: string };
+        };
+      };
       console.log("response", response);
       if (!response.success) {
         throw new Error(response.message || "Error al iniciar sesión");
@@ -41,18 +49,21 @@ export default function AdminLogin() {
 
       login({
         userType: "admin",
-        user: response.data.business,
+        user: response.data?.business,
         tokens: {
-          accessToken: response.data.token,
-          refreshToken: response.data.token,
+          accessToken: response.data?.token?.accessToken,
+          refreshToken: response.data?.token?.refreshToken,
         },
       });
 
       // Guardar token y datos del negocio en localStorage
-      localStorage.setItem("admin_token", (response.data as any).token);
+      localStorage.setItem(
+        "admin_token",
+        response.data?.token?.accessToken || ""
+      );
       localStorage.setItem(
         "admin_data",
-        JSON.stringify((response.data as any).business)
+        JSON.stringify(response.data?.business || {})
       );
 
       // Redirigir al dashboard

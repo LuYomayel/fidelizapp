@@ -5,6 +5,7 @@ import {
   CreateBusinessDto,
   CreateClientDto,
   UpdateBusinessDto,
+  IBusiness,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
