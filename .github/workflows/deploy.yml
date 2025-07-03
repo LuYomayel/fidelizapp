@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -21,10 +23,12 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+        working-directory: fidelizapp
 
       - name: Build project
         run: npm run build
+        working-directory: fidelizapp
 
       - name: Deploy to Production Server
         uses: appleboy/ssh-action@v1.0.0
