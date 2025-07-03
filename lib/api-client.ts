@@ -36,8 +36,9 @@ async function fetchAPI<T = unknown>(
   const token = getAuthToken();
 
   // Construir headers base - SIEMPRE definidos
+  const isFormData = options.body instanceof FormData;
   const baseHeaders = {
-    "Content-Type": "application/json",
+    ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(token && { Authorization: `Bearer ${token}` }),
   };
 
@@ -213,7 +214,12 @@ export const apiClient = {
   ) =>
     fetchAPI<ApiResponse<T>>(endpoint, {
       method: "POST",
-      body: data ? JSON.stringify(data) : undefined,
+      body:
+        data instanceof FormData
+          ? (data as FormData)
+          : data
+          ? JSON.stringify(data)
+          : undefined,
       headers,
     }),
 
@@ -262,8 +268,7 @@ export const api = {
   businesses: {
     get: (id: string) => apiClient.get(`/business/${id}`),
     getAll: () => apiClient.get("/business"),
-    register: (data: CreateBusinessDto) =>
-      apiClient.post("/business/register", data),
+    register: (data: any) => apiClient.post("/business/register", data),
     login: (data: LoginBusinessDto) => apiClient.post("/business/login", data),
     update: (
       id: string,

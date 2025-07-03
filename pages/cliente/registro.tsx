@@ -6,7 +6,8 @@ import { UserPlus, ArrowLeft, Check } from "lucide-react";
 
 // Importar utilidades y tipos
 import { validarEmail } from "@/utils";
-import { ClientRegistrationForm } from "../../shared";
+import { ClientRegistrationForm, CreateClientDto } from "@shared";
+import { api } from "@/lib/api-client";
 
 // Componentes shadcn/ui
 import { Button } from "@/components/ui/button";
@@ -67,30 +68,24 @@ export default function ClienteRegistro() {
     setIsLoading(true);
 
     try {
-      console.log(formData);
-      const respuesta = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/clients/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      if (!respuesta.ok) {
-        throw new Error("Error en el registro");
+      const createClientDto: CreateClientDto = {
+        ...formData,
+        password: formData.email,
+      };
+      const response = await api.clients.register(createClientDto);
+      if (response.success) {
+        setRegistroExitoso(true);
+        setTimeout(() => {
+          router.push("/cliente/login");
+        }, 3000);
+      } else {
+        console.log(response);
+        setErrors({ email: response.message });
       }
-
-      setRegistroExitoso(true);
-
-      // Redirigir después de un momento
-      setTimeout(() => {
-        router.push("/cliente/login");
-      }, 3000);
-    } catch (error) {
-      setErrors({ email: "Error al registrar. Intenta nuevamente." });
+    } catch (error: any) {
+      setErrors({
+        email: error.message || "Error al registrar. Intenta nuevamente.",
+      });
     } finally {
       setIsLoading(false);
     }

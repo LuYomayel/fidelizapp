@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { LogIn, Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { LoginBusinessDto } from "../../shared";
+import { useAuth } from "@/contexts/AuthContext";
 
 // TODO: Importar contexto de admin cuando esté listo
 // import { useAdmin } from '@/contexts/AdminContext';
@@ -19,10 +20,8 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const { login } = useAuth();
   const router = useRouter();
-  // TODO: Usar contexto real
-  // const { login } = useAdmin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +34,19 @@ export default function AdminLogin() {
         password: formData.password,
       };
       const response = await api.businesses.login(data);
-
+      console.log("response", response);
       if (!response.success) {
         throw new Error(response.message || "Error al iniciar sesión");
       }
+
+      login({
+        userType: "admin",
+        user: response.data.business,
+        tokens: {
+          accessToken: response.data.token,
+          refreshToken: response.data.token,
+        },
+      });
 
       // Guardar token y datos del negocio en localStorage
       localStorage.setItem("admin_token", (response.data as any).token);
@@ -178,7 +186,7 @@ export default function AdminLogin() {
               <p className="text-gray-600">
                 ¿No tienes cuenta?{" "}
                 <Link
-                  href="/admin/registro"
+                  href="/negocio/registro"
                   className="text-secondary-600 hover:text-secondary-700 font-medium"
                 >
                   Registra tu negocio

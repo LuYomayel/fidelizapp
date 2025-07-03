@@ -124,31 +124,33 @@ export default function RegistroNegocio() {
     setIsLoading(true);
 
     try {
-      const data: CreateBusinessDto = {
-        businessName: formData.businessName,
-        email: formData.email,
-        internalPhone: formData.internalPhone || undefined,
-        externalPhone: formData.externalPhone || undefined,
-        size: formData.size,
-        street: formData.street,
-        neighborhood: formData.neighborhood,
-        postalCode: formData.postalCode,
-        province: formData.province,
-        type: formData.type,
-        instagram: formData.instagram || undefined,
-        tiktok: formData.tiktok || undefined,
-        website: formData.website || undefined,
-        password: formData.email,
+      // Construir FormData para envío multipart
+      const formDataToSend = new FormData();
+      formDataToSend.append("businessName", formData.businessName);
+      formDataToSend.append("email", formData.email);
+      formDataToSend.append("password", formData.email);
+      formDataToSend.append("size", formData.size);
+      formDataToSend.append("street", formData.street);
+      formDataToSend.append("neighborhood", formData.neighborhood);
+      formDataToSend.append("postalCode", formData.postalCode);
+      formDataToSend.append("province", formData.province);
+      formDataToSend.append("type", formData.type);
+      if (formData.internalPhone)
+        formDataToSend.append("internalPhone", formData.internalPhone);
+      if (formData.externalPhone)
+        formDataToSend.append("externalPhone", formData.externalPhone);
+      if (formData.instagram)
+        formDataToSend.append("instagram", formData.instagram);
+      if (formData.tiktok) formDataToSend.append("tiktok", formData.tiktok);
+      if (formData.website) formDataToSend.append("website", formData.website);
+      formDataToSend.append("active", "true");
+      if (logoFile) {
+        formDataToSend.append("logo", logoFile);
+      }
 
-        active: true,
-
-        logo: logoFile ? logoFile : undefined,
-      };
-      const response = await api.businesses.register(data);
-      console.log(response);
-
+      const response: any = await api.businesses.register(formDataToSend);
       if (!response.success) {
-        throw new Error("Error en el registro");
+        throw new Error(response.message || "Error en el registro");
       }
 
       setRegistroExitoso(true);
@@ -161,7 +163,7 @@ export default function RegistroNegocio() {
       console.log(error);
       // @ts-ignore
       setErrors({
-        businessName: "Error al registrar. Intenta nuevamente.",
+        email: error.message || "Error al registrar. Intenta nuevamente.",
       });
     } finally {
       setIsLoading(false);

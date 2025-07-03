@@ -19,6 +19,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { api } from "@/lib/api-client";
+import { LoginClientDto } from "@shared";
+import { useAuth } from "@/contexts/AuthContext";
 
 // TODO: Importar contexto de cliente cuando esté listo
 // import { useCliente } from '@/contexts/ClienteContext';
@@ -31,10 +34,9 @@ export default function ClienteLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
   const router = useRouter();
-  // TODO: Usar contexto real
-  // const { login } = useCliente();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,36 +60,33 @@ export default function ClienteLogin() {
     setError("");
 
     try {
-      const respuesta = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
-        }/api/clients/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      const loginClientDto: LoginClientDto = {
+        email,
+        password,
+      };
+      const response = (await api.clients.login(loginClientDto)) as {
+        success: boolean;
+        message: string;
+        data: { token: string; client: any };
+      };
+      if (response.success) {
+        localStorage.setItem("cliente_token", response.data.token);
+        localStorage.setItem(
+          "cliente_data",
+          JSON.stringify(response.data.client)
+        );
+        login({
+          userType: "client",
+          user: response.data.client,
+          tokens: {
+            accessToken: response.data.token,
+            refreshToken: response.data.token,
           },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-
-      if (!respuesta.ok) {
-        const data = await respuesta.json();
-        throw new Error(data.message || "Error al iniciar sesión");
+        });
+        router.push("/cliente/mi-tarjeta");
+      } else {
+        setError(response.message || "Error al iniciar sesión");
       }
-
-      const data = await respuesta.json();
-
-      if (!data.success) {
-        throw new Error(data.message || "Error al iniciar sesión");
-      }
-
-      // Guardar token en localStorage
-      localStorage.setItem("cliente_token", data.data.token);
-      localStorage.setItem("cliente_data", JSON.stringify(data.data.client));
-
-      // Redirigir a mi-tarjeta
-      router.push("/cliente/mi-tarjeta");
     } catch (error: any) {
       setError(error.message || "Error al iniciar sesión");
     } finally {
