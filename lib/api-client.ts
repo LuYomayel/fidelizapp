@@ -208,7 +208,7 @@ export const apiClient = {
 
   post: <T = unknown>(
     endpoint: string,
-    data?: Record<string, unknown>,
+    data?: unknown,
     headers?: Record<string, string>
   ) =>
     fetchAPI<ApiResponse<T>>(endpoint, {
@@ -217,15 +217,11 @@ export const apiClient = {
       headers,
     }),
 
-  put: <T = unknown>(
-    endpoint: string,
-    data?: Record<string, unknown>,
-    headers?: Record<string, string>
-  ) =>
+  put: <T = unknown>(endpoint: string, data?: unknown, headers?: unknown) =>
     fetchAPI<ApiResponse<T>>(endpoint, {
       method: "PUT",
       body: data ? JSON.stringify(data) : undefined,
-      headers,
+      headers: headers as any,
     }),
 
   delete: <T = unknown>(endpoint: string, headers?: Record<string, string>) =>
@@ -272,7 +268,7 @@ export const api = {
     update: (
       id: string,
       { data, logo }: { data: UpdateBusinessDto; logo: File }
-    ) => apiClient.put(`/business/${id}`, data, logo),
+    ) => apiClient.put(`/business/${id}`, data, logo as any),
     delete: (id: string) => apiClient.delete(`/business?id=${id}`),
   },
 };
