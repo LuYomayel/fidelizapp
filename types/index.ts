@@ -1,4 +1,4 @@
-import { Client, Admin, Business, Reward } from "../shared";
+import { Client, Admin, Business, Reward } from "../../shared";
 
 export interface ClientContextType {
   client: Client | null;

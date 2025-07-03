@@ -14,6 +14,6 @@ const nextConfig = {
 module.exports = {
   ...nextConfig,
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
 };
