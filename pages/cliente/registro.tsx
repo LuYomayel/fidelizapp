@@ -21,6 +21,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+// Componente Google OAuth
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+
 export default function ClienteRegistro() {
   const [formData, setFormData] = useState<ClientRegistrationForm>({
     firstName: "",
@@ -182,6 +185,25 @@ export default function ClienteRegistro() {
           {/* Formulario */}
           <Card>
             <CardContent className="pt-6">
+              {/* Opción Google OAuth */}
+              <div className="mb-6">
+                <GoogleSignInButton
+                  text="Registrarse con Google"
+                  className="w-full"
+                />
+
+                <div className="relative my-6">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-white px-2 text-gray-500">
+                      O completa el formulario
+                    </span>
+                  </div>
+                </div>
+              </div>
+
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Nombre */}
                 <div>
