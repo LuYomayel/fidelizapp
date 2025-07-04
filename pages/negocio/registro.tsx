@@ -143,10 +143,7 @@ export default function RegistroNegocio() {
         formDataToSend.append("instagram", formData.instagram);
       if (formData.tiktok) formDataToSend.append("tiktok", formData.tiktok);
       if (formData.website) formDataToSend.append("website", formData.website);
-      formDataToSend.append("active", "true");
-      if (logoFile) {
-        formDataToSend.append("logo", logoFile);
-      }
+      if (logoFile) formDataToSend.append("logo", logoFile);
 
       const response: any = await api.businesses.register(formDataToSend);
       if (!response.success) {
