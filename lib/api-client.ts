@@ -6,11 +6,23 @@ import {
   CreateClientDto,
   UpdateBusinessDto,
   IBusiness,
+  // Nuevas interfaces para sistema de sellos
+  IStamp,
+  IClientCard,
+  IStampRedemption,
+  CreateStampDto,
+  RedeemStampDto,
+  StampSummaryDto,
+  ClientCardSummaryDto,
+  PaginatedResponse,
+  PaginationParams,
+  StampFilters,
+  ClientCardFilters,
+  StampType,
+  PurchaseType,
 } from "@shared";
 // Configuración de la API
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ||
-  "https://api-fidelizapp.luciano-yomayel.com";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 console.log("API_BASE_URL", API_BASE_URL);
 // Función helper para obtener el token desde el store
 function getAuthToken(): string | null {
@@ -199,8 +211,32 @@ async function refreshAuthToken(): Promise<boolean> {
 function clearAuthAndRedirect(): void {
   if (typeof window === "undefined") return;
 
-  localStorage.removeItem("auth-storage");
-  window.location.href = "/admin/login";
+  try {
+    const authStorage = localStorage.getItem("auth-storage");
+    if (authStorage) {
+      const parsed = JSON.parse(authStorage);
+      const userType = parsed?.state?.userType;
+      localStorage.removeItem("auth-storage");
+
+      // Redirigir según el tipo de usuario
+      if (userType === "client") {
+        window.location.href = "/cliente/login";
+      } else {
+        window.location.href = "/admin/login";
+      }
+    } else {
+      // Si no hay información de usuario, redirigir al login de admin por defecto
+      console.log(
+        "no hay información de usuario, redirigir al login de admin por defecto"
+      );
+      localStorage.removeItem("auth-storage");
+      window.location.href = "/admin/login";
+    }
+  } catch (error) {
+    console.error("Error al limpiar autenticación:", error);
+    localStorage.removeItem("auth-storage");
+    window.location.href = "/admin/login";
+  }
 }
 
 // Tipos para las respuestas de API
@@ -278,6 +314,77 @@ export const api = {
       { data, logo }: { data: UpdateBusinessDto; logo: File }
     ) => apiClient.put(`/business/${id}`, data, logo as any),
     delete: (id: string) => apiClient.delete(`/business?id=${id}`),
+  },
+  stamps: {
+    generateQuick: (saleValue: number) =>
+      apiClient.post<IStamp>("/business/stamps/quick", { saleValue }),
+    create: (data: CreateStampDto) =>
+      apiClient.post<IStamp>("/business/stamps", data),
+    getHistory: (params?: StampFilters) => {
+      const queryParams = new URLSearchParams();
+      if (params?.page) queryParams.append("page", params.page.toString());
+      if (params?.limit) queryParams.append("limit", params.limit.toString());
+      if (params?.search) queryParams.append("search", params.search);
+      if (params?.status) queryParams.append("status", params.status);
+      if (params?.stampType) queryParams.append("stampType", params.stampType);
+      if (params?.purchaseType)
+        queryParams.append("purchaseType", params.purchaseType);
+      if (params?.dateFrom)
+        queryParams.append("dateFrom", params.dateFrom.toISOString());
+      if (params?.dateTo)
+        queryParams.append("dateTo", params.dateTo.toISOString());
+
+      const queryString = queryParams.toString();
+      return apiClient.get<PaginatedResponse<IStamp>>(
+        `/business/stamps${queryString ? `?${queryString}` : ""}`
+      );
+    },
+    getStatistics: () =>
+      apiClient.get<StampSummaryDto>("/business/stamps/statistics"),
+    findByCode: (code: string) =>
+      apiClient.get<IStamp>(`/business/stamps/${code}`),
+    cancel: (id: string) => apiClient.delete<IStamp>(`/business/stamps/${id}`),
+  },
+  clientCards: {
+    // Canjear código de sello
+    redeem: (data: RedeemStampDto) =>
+      apiClient.post<{
+        clientCard: IClientCard;
+        stamp: IStamp;
+        redemption: IStampRedemption;
+      }>("/client-cards/redeem", data),
+
+    // Obtener todas las tarjetas del cliente
+    getAll: () => apiClient.get<IClientCard[]>("/client-cards"),
+
+    // Obtener tarjeta específica por negocio
+    getByBusiness: (businessId: string) =>
+      apiClient.get<IClientCard>(`/client-cards/${businessId}`),
+
+    // Obtener historial de canjes por negocio
+    getHistory: (businessId: string) =>
+      apiClient.get<IStampRedemption[]>(`/client-cards/${businessId}/history`),
+
+    // Obtener estadísticas de tarjetas del cliente
+    getStatistics: () =>
+      apiClient.get<ClientCardSummaryDto>("/client-cards/statistics"),
+  },
+  quickStamps: {
+    // Venta pequeña (1-2 sellos)
+    small: () =>
+      apiClient.post<IStamp>("/business/stamps/quick", { saleValue: 1000 }),
+
+    // Venta mediana (2-3 sellos)
+    medium: () =>
+      apiClient.post<IStamp>("/business/stamps/quick", { saleValue: 2500 }),
+
+    // Venta grande (3-5 sellos)
+    large: () =>
+      apiClient.post<IStamp>("/business/stamps/quick", { saleValue: 5000 }),
+
+    // Venta especial (5+ sellos)
+    special: () =>
+      apiClient.post<IStamp>("/business/stamps/quick", { saleValue: 10000 }),
   },
 };
 

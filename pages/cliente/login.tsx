@@ -68,22 +68,16 @@ export default function ClienteLogin() {
       const response = (await api.clients.login(loginClientDto)) as {
         success: boolean;
         message: string;
-        data: { token: string; client: any };
+        data: { token: string; client: any; tokens: any };
       };
       if (response.success) {
-        localStorage.setItem("cliente_token", response.data.token);
-        localStorage.setItem(
-          "cliente_data",
-          JSON.stringify(response.data.client)
-        );
+        // Usar el AuthContext para manejar la autenticación
         login({
           userType: "client",
           user: response.data.client,
-          tokens: {
-            accessToken: response.data.token,
-            refreshToken: response.data.token,
-          },
+          tokens: response.data.tokens,
         });
+
         router.push("/cliente/mi-tarjeta");
       } else {
         setError(response.message || "Error al iniciar sesión");

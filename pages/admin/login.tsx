@@ -40,10 +40,11 @@ export default function AdminLogin() {
         message: string;
         data: {
           business: IBusiness;
-          token: { accessToken: string; refreshToken: string };
+          token: string;
+          tokens: { accessToken: string; refreshToken: string };
         };
       };
-      console.log("response", response);
+
       if (!response.success) {
         throw new Error(response.message || "Error al iniciar sesión");
       }
@@ -52,15 +53,15 @@ export default function AdminLogin() {
         userType: "admin",
         user: response.data?.business,
         tokens: {
-          accessToken: response.data?.token?.accessToken,
-          refreshToken: response.data?.token?.refreshToken,
+          accessToken: response.data?.tokens?.accessToken,
+          refreshToken: response.data?.tokens?.refreshToken,
         },
       });
 
       // Guardar token y datos del negocio en localStorage
       localStorage.setItem(
         "admin_token",
-        response.data?.token?.accessToken || ""
+        response.data?.tokens?.accessToken || ""
       );
       localStorage.setItem(
         "admin_data",

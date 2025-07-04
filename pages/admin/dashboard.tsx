@@ -17,6 +17,10 @@ import {
   Star,
   CreditCard,
   Activity,
+  Ticket,
+  Zap,
+  History,
+  QrCode,
 } from "lucide-react";
 
 import { BusinessStatistics, Client } from "../../shared";
@@ -207,8 +211,79 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          {/* Sección de acciones rápidas */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Nueva sección de gestión de sellos */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-purple-500" />
+                  Sistema de Sellos
+                </CardTitle>
+                <CardDescription>
+                  Genera códigos y gestiona sellos para tus clientes
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Link href="/admin/generar-codigo-rapido">
+                    <Button className="w-full h-20 flex flex-col items-center justify-center space-y-2 text-left">
+                      <Zap className="w-6 h-6" />
+                      <div className="text-center">
+                        <div className="font-semibold">Código Rápido</div>
+                        <div className="text-xs opacity-90">
+                          Genera instantáneamente
+                        </div>
+                      </div>
+                    </Button>
+                  </Link>
+
+                  <Link href="/admin/generar-codigo">
+                    <Button
+                      variant="outline"
+                      className="w-full h-20 flex flex-col items-center justify-center space-y-2"
+                    >
+                      <QrCode className="w-6 h-6" />
+                      <div className="text-center">
+                        <div className="font-semibold">
+                          Código Personalizado
+                        </div>
+                        <div className="text-xs opacity-70">
+                          Con opciones avanzadas
+                        </div>
+                      </div>
+                    </Button>
+                  </Link>
+
+                  <Link href="/admin/historial-sellos">
+                    <Button
+                      variant="outline"
+                      className="w-full h-20 flex flex-col items-center justify-center space-y-2"
+                    >
+                      <History className="w-6 h-6" />
+                      <div className="text-center">
+                        <div className="font-semibold">Historial</div>
+                        <div className="text-xs opacity-70">
+                          Ver todos los sellos
+                        </div>
+                      </div>
+                    </Button>
+                  </Link>
+
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex flex-col items-center justify-center space-y-2"
+                    disabled
+                  >
+                    <BarChart3 className="w-6 h-6" />
+                    <div className="text-center">
+                      <div className="font-semibold">Estadísticas</div>
+                      <div className="text-xs opacity-70">Próximamente</div>
+                    </div>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -220,7 +295,7 @@ export default function AdminDashboard() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-3">
                   <Button className="w-full justify-start">
                     <Users className="w-4 h-4 mr-2" />
                     Gestionar Clientes
@@ -240,7 +315,10 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+          </div>
 
+          {/* Sección de clientes recientes */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -285,17 +363,62 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-purple-500" />
+                  Actividad Reciente
+                </CardTitle>
+                <CardDescription>
+                  Últimas acciones en tu negocio
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 p-2 bg-green-50 rounded-lg">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <Ticket className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Código canjeado</p>
+                      <p className="text-xs text-gray-500">Hace 5 minutos</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-2 bg-blue-50 rounded-lg">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Users className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Nuevo cliente</p>
+                      <p className="text-xs text-gray-500">Hace 1 hora</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-2 bg-purple-50 rounded-lg">
+                    <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      <Gift className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">Recompensa canjeada</p>
+                      <p className="text-xs text-gray-500">Hace 2 horas</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Resumen de actividad */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-purple-500" />
-                Actividad del Negocio
+                <Award className="w-5 h-5 text-orange-500" />
+                Estado del Programa de Fidelización
               </CardTitle>
               <CardDescription>
-                Resumen de la actividad y próximos pasos
+                Resumen del rendimiento y próximos pasos
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -314,13 +437,13 @@ export default function AdminDashboard() {
 
                 <div className="text-center p-4 bg-green-50 rounded-lg">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <Award className="w-6 h-6 text-green-600" />
+                    <Ticket className="w-6 h-6 text-green-600" />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-1">
-                    Premios Populares
+                    Sellos Activos
                   </h3>
                   <p className="text-sm text-gray-600">
-                    Los clientes están canjeando premios activamente
+                    Los clientes están canjeando códigos activamente
                   </p>
                 </div>
 
