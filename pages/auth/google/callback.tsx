@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
 import Head from "next/head";
@@ -6,41 +6,67 @@ import Head from "next/head";
 export default function GoogleCallback() {
   const router = useRouter();
   const { login } = useAuth();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const hasProcessed = useRef(false);
 
   useEffect(() => {
+    // Evitar procesamiento múltiple
+    if (hasProcessed.current || isProcessing) {
+      return;
+    }
+
     const { token, user } = router.query;
 
-    if (token && user) {
+    if (
+      token &&
+      user &&
+      typeof token === "string" &&
+      typeof user === "string"
+    ) {
+      hasProcessed.current = true;
+      setIsProcessing(true);
+
       try {
+        console.log("🔄 Procesando callback de Google OAuth...");
+
         // Parsear los datos del usuario
-        const userData = JSON.parse(decodeURIComponent(user as string));
+        const userData = JSON.parse(decodeURIComponent(user));
+
+        console.log("👤 Datos del usuario:", userData);
 
         // Iniciar sesión con los datos recibidos
         login({
           userType: "client", // o 'admin' según corresponda
           user: userData,
           tokens: {
-            accessToken: token as string,
-            refreshToken: token as string, // Por ahora usar el mismo token
+            accessToken: token,
+            refreshToken: token, // Por ahora usar el mismo token
           },
         });
 
         // Guardar en localStorage para persistencia
-        localStorage.setItem("google_token", token as string);
+        localStorage.setItem("google_token", token);
         localStorage.setItem("google_user", JSON.stringify(userData));
 
-        // Redirigir según el tipo de usuario
-        if (userData.provider === "google") {
-          router.push("/cliente/mi-tarjeta");
-        } else {
-          router.push("/admin/dashboard");
-        }
+        console.log("✅ Login exitoso, redirigiendo...");
+
+        // Pequeña pausa antes de redirigir para evitar problemas
+        setTimeout(() => {
+          // Redirigir según el tipo de usuario
+          if (userData.provider === "google") {
+            router.replace("/cliente/mi-tarjeta");
+          } else {
+            router.replace("/admin/dashboard");
+          }
+        }, 500);
       } catch (error) {
-        console.error("Error al procesar callback de Google:", error);
-        router.push("/auth/error?message=Error al procesar autenticación");
+        console.error("❌ Error al procesar callback de Google:", error);
+        setIsProcessing(false);
+        hasProcessed.current = false;
+        router.replace("/auth/error?message=Error al procesar autenticación");
       }
     }
-  }, [router.query, login, router]);
+  }, [router.query.token, router.query.user]); // Solo depender de los valores específicos
 
   return (
     <>
@@ -58,7 +84,9 @@ export default function GoogleCallback() {
             </div>
 
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Procesando autenticación...
+              {isProcessing
+                ? "Procesando autenticación..."
+                : "Conectando con Google..."}
             </h2>
 
             <p className="text-gray-600 mb-6">

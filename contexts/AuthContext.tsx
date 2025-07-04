@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { useRouter } from "next/router";
 
 interface Tokens {
@@ -42,18 +48,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [state]);
 
-  const login: AuthContextProps["login"] = ({ tokens, user, userType }) => {
-    console.log("login", { tokens, user, userType });
-    setState({ tokens, user, userType });
-  };
+  const login = useCallback<AuthContextProps["login"]>(
+    ({ tokens, user, userType }) => {
+      console.log("✅ AuthContext: Usuario autenticado", {
+        userType,
+        email: user?.email,
+      });
+      setState({ tokens, user, userType });
+    },
+    []
+  );
 
-  const logout = () => {
+  const logout = useCallback(() => {
+    console.log("🚪 AuthContext: Cerrando sesión");
+    const currentUserType = state.userType;
     setState({ tokens: null, user: null, userType: null });
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth-storage");
     }
-    router.push(state.userType === "admin" ? "/admin/login" : "/cliente/login");
-  };
+    router.push(
+      currentUserType === "admin" ? "/admin/login" : "/cliente/login"
+    );
+  }, [router, state.userType]);
 
   return (
     <AuthContext.Provider value={{ ...state, login, logout }}>
