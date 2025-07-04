@@ -8,7 +8,9 @@ import {
   IBusiness,
 } from "@shared";
 // Configuración de la API
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://api-fidelizapp.luciano-yomayel.com";
 console.log("API_BASE_URL", API_BASE_URL);
 // Función helper para obtener el token desde el store
 function getAuthToken(): string | null {

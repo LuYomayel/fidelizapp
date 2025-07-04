@@ -18,9 +18,10 @@ export default function GoogleSignInButton({
 
     // Construir URL de autenticación de Google
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+      process.env.NEXT_PUBLIC_API_URL ||
+      "https://api-fidelizapp.luciano-yomayel.com";
     const googleAuthUrl = `${backendUrl}/api/auth/google`;
-
+    console.log("googleAuthUrl", googleAuthUrl);
     // Redirigir a Google OAuth
     window.location.href = googleAuthUrl;
   };
