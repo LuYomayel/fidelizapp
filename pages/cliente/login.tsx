@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api } from "@/lib/api-client";
 import { LoginClientDto } from "@shared";
 import { useAuth } from "@/contexts/AuthContext";
+import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
 // TODO: Importar contexto de cliente cuando esté listo
 // import { useCliente } from '@/contexts/ClienteContext';
@@ -185,6 +186,22 @@ export default function ClienteLogin() {
                   >
                     {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
                   </Button>
+
+                  {/* Separador */}
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-300" />
+                    </div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="px-2 bg-white text-gray-500">O</span>
+                    </div>
+                  </div>
+
+                  {/* Botón de Google */}
+                  <GoogleSignInButton
+                    text="Continuar con Google"
+                    disabled={isLoading}
+                  />
 
                   <div className="text-center">
                     <span className="text-sm text-gray-600">
