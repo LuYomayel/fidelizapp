@@ -56,7 +56,9 @@ jobs:
             echo "📦 Instalando dependencias..."
             npm install
 
-            echo "🏗️ Construyendo proyecto..."
+            echo "🏗️ Ejecutando build del frontend con variables..."
+            FRONTEND_URL=https://fidelizapp.luciano-yomayel.com \
+            NEXT_PUBLIC_API_URL=https://api-fidelizapp.luciano-yomayel.com \
             npm run build
 
             echo "🔄 Reiniciando aplicación con PM2..."
