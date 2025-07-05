@@ -68,6 +68,7 @@ export default function GenerarCodigoRapidoPage() {
     setError("");
 
     try {
+      console.log("saleValue", saleValue);
       const response = await api.stamps.generateQuick(saleValue);
 
       if (response.success && response.data) {

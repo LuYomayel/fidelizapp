@@ -2,7 +2,7 @@ import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { LogIn, ArrowLeft } from "lucide-react";
+import { LogIn, ArrowLeft, Loader2 } from "lucide-react";
 
 // Importar utilidades y tipos
 import { validarEmail } from "@/utils";
@@ -23,6 +23,7 @@ import { api } from "@/lib/api-client";
 import { LoginClientDto } from "@shared";
 import { useAuth } from "@/contexts/AuthContext";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import PublicRoute from "@/components/shared/PublicRoute";
 
 // TODO: Importar contexto de cliente cuando esté listo
 // import { useCliente } from '@/contexts/ClienteContext';
@@ -90,7 +91,7 @@ export default function ClienteLogin() {
   };
 
   return (
-    <>
+    <PublicRoute>
       <Head>
         <title>Login Cliente | FirulApp</title>
         <meta
@@ -178,7 +179,17 @@ export default function ClienteLogin() {
                     disabled={isLoading}
                     className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
                   >
-                    {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
+                    {isLoading ? (
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="w-5 h-5 mr-2" />
+                        Iniciando sesión...
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <LogIn className="w-5 h-5 mr-2" />
+                        Iniciar Sesión
+                      </div>
+                    )}
                   </Button>
 
                   {/* Separador */}
@@ -224,6 +235,6 @@ export default function ClienteLogin() {
           </div>
         </div>
       </div>
-    </>
+    </PublicRoute>
   );
 }

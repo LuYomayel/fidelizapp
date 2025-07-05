@@ -12,9 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-
-// TODO: Importar contextos y componentes cuando estén listos
-// import { useRouter } from 'next/router';
+import PublicRoute from "@/components/shared/PublicRoute";
 
 export default function LandingPage() {
   const [tipoAcceso, setTipoAcceso] = useState<"cliente" | "negocio" | null>(
@@ -22,7 +20,7 @@ export default function LandingPage() {
   );
 
   return (
-    <>
+    <PublicRoute>
       <Head>
         <title>FirulApp - Programa de Fidelización Digital</title>
         <meta
@@ -35,19 +33,39 @@ export default function LandingPage() {
         {/* Header */}
         <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Heart className="w-6 h-6 text-white" />
             </div>
             <span className="text-2xl font-bold text-gray-900">FirulApp</span>
           </div>
 
-          <div className="flex space-x-4">
-            <Button asChild variant="ghost" className="px-4 py-2 text-sm">
-              <Link href="/cliente/login">Iniciar Sesión</Link>
-            </Button>
-            <Button asChild variant="outline" className="px-4 py-2 text-sm">
-              <Link href="#como-funciona">Registrarse</Link>
-            </Button>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Link href="/admin/login">
+                  <Users className="w-4 h-4 mr-1 text-purple-600" />
+                  Iniciar sesión Negocio
+                </Link>
+              </Button>
+              <span className="text-gray-400 text-sm">|</span>
+              <Button
+                asChild
+                variant="ghost"
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <Link href="/cliente/login">
+                  <Smartphone className="w-4 h-4 mr-1 text-purple-600" />
+                  Iniciar sesión Cliente
+                </Link>
+              </Button>
+            </div>
+            {/* Botón de registrarse eliminado */}
           </div>
         </header>
 
@@ -64,140 +82,218 @@ export default function LandingPage() {
             sellos digitales fácil de usar.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button asChild>
-              <Link href="/negocio/registro">Soy un Negocio</Link>
-            </Button>
-            <Button asChild variant="secondary">
-              <Link href="/cliente/registro">Soy un Cliente</Link>
-            </Button>
+          <div className="text-center mb-16">
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-gray-800">
+                Regístrate como:
+              </h3>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 text-white font-bold hover:from-purple-600 hover:to-purple-700"
+                >
+                  <Link href="/negocio/registro">
+                    <Users className="w-5 h-5 mr-2" />
+                    Negocio
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 border border-gray-200"
+                >
+                  <Link href="/cliente/registro">
+                    <Smartphone className="w-5 h-5 mr-2" />
+                    Cliente
+                  </Link>
+                </Button>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Características */}
-        <section
-          className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid md:grid-cols-3 gap-8"
-          id="caracteristicas"
-        >
-          {/* Negocios */}
-          <Card className="text-center p-8">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Users className="w-8 h-8 text-blue-600" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              Para Negocios
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Gestiona tu programa de fidelización
+        {/* Proceso de Registro */}
+        <section className="py-16 bg-white" id="registro">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">
+              ¿Cómo empezar?
+            </h2>
+            <p className="text-lg text-gray-600 mb-12">
+              Elige tu tipo de cuenta y comienza en menos de 2 minutos
             </p>
-            <ul className="text-sm text-gray-500 space-y-2 text-left mx-auto max-w-xs">
-              <li>• Configura tu perfil de negocio</li>
-              <li>• Establece umbrales de sellos y recompensas</li>
-              <li>• Emite sellos digitales a tus clientes</li>
-              <li>• Visualiza métricas y estadísticas</li>
-            </ul>
-            <Button asChild className="w-full mt-6">
-              <Link href="/negocio/registro">Registrar mi Negocio</Link>
-            </Button>
-          </Card>
 
-          {/* Clientes */}
-          <Card className="text-center p-8">
-            <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Smartphone className="w-8 h-8 text-purple-600" />
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Card Negocio */}
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-8 rounded-xl text-white shadow-lg flex flex-col justify-between">
+                <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-2 text-white">
+                  Para Negocios
+                </h3>
+                <p className="mb-4 text-white/90">
+                  Configura tu programa de fidelización y comienza a emitir
+                  sellos digitales
+                </p>
+                <ul className="text-sm space-y-1 mb-6 text-left text-white/80">
+                  <li>✓ Panel de administración</li>
+                  <li>✓ Generación de códigos</li>
+                  <li>✓ Estadísticas en tiempo real</li>
+                </ul>
+                <Button
+                  asChild
+                  className="w-full bg-white text-purple-600 font-bold hover:bg-purple-100 border-2 border-white"
+                >
+                  <Link href="/negocio/registro">Crear cuenta de Negocio</Link>
+                </Button>
+              </div>
+              {/* Card Cliente */}
+              <div className="bg-white p-8 rounded-xl shadow flex flex-col justify-between">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Smartphone className="w-8 h-8 text-gray-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Para Clientes
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Crea tu cuenta gratuita y comienza a acumular sellos en tus
+                  negocios favoritos
+                </p>
+                <ul className="text-sm text-gray-600 space-y-1 mb-6 text-left">
+                  <li>✓ Registro gratuito</li>
+                  <li>✓ Acceso inmediato</li>
+                  <li>✓ Sin tarjetas físicas</li>
+                </ul>
+                <Button
+                  asChild
+                  className="w-full bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 border border-gray-200"
+                >
+                  <Link href="/cliente/registro">Crear cuenta de Cliente</Link>
+                </Button>
+              </div>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              Para Clientes
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Acumula sellos y obtén recompensas
-            </p>
-            <ul className="text-sm text-gray-500 space-y-2 text-left mx-auto max-w-xs">
-              <li>• Crea tu cuenta de cliente</li>
-              <li>• Acumula sellos en tus negocios favoritos</li>
-              <li>• Visualiza tu progreso hacia recompensas</li>
-              <li>• Canjea tus recompensas fácilmente</li>
-            </ul>
-            <Button asChild variant="secondary" className="w-full mt-6">
-              <Link href="/cliente/registro">Registrarme como Cliente</Link>
-            </Button>
-          </Card>
-
-          {/* Cómo funciona */}
-          <Card className="text-center p-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Gift className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-4">
-              Cómo Funciona
-            </h3>
-            <p className="text-gray-600 mb-6">Simple, rápido y efectivo</p>
-            <ul className="text-sm text-gray-500 space-y-2 text-left mx-auto max-w-xs">
-              <li>• Los negocios emiten sellos digitales</li>
-              <li>• Los clientes acumulan sellos por compras</li>
-              <li>• Al alcanzar el umbral, obtienen recompensas</li>
-              <li>• Sin tarjetas físicas, todo digital</li>
-            </ul>
-            <Button asChild variant="outline" className="w-full mt-6">
-              <Link href="#como-funciona">Más Información</Link>
-            </Button>
-          </Card>
+          </div>
         </section>
 
         {/* Pasos */}
-        <section id="como-funciona" className="py-20 bg-gray-50">
+        <section id="como-funciona" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
               ¿Cómo funciona FirulApp?
             </h2>
             <p className="text-xl text-gray-600">
-              Un proceso simple para fidelizar a tus clientes
+              Un proceso simple y efectivo para fidelizar a tus clientes
             </p>
           </div>
 
-          <div className="max-w-5xl mx-auto px-4 grid md:grid-cols-4 gap-8">
-            {/* Paso 1 */}
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-blue-500 flex items-center justify-center mx-auto">
-                <UserPlus className="w-9 h-9 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-900">Registro</h3>
-              <p className="text-sm text-gray-600">
-                El negocio se registra y configura su programa
-              </p>
+          <div className="max-w-6xl mx-auto px-4">
+            {/* Línea conectora purple */}
+            <div className="hidden md:block relative h-0 mb-12">
+              <div className="absolute top-12 left-0 right-0 h-1 bg-gradient-to-r from-purple-200 via-purple-400 to-purple-200 rounded-full"></div>
             </div>
-
-            {/* Paso 2 */}
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-purple-500 flex items-center justify-center mx-auto">
-                <ShoppingCart className="w-9 h-9 text-white" />
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 relative z-10">
+              {/* Paso 1 */}
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <UserPlus className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white border-2 border-purple-200 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-bold text-sm">1</span>
+                  </div>
+                </div>
+                <h3 className="font-bold text-gray-900 text-lg">Registro</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  El negocio se registra y configura su programa de fidelización
+                  personalizado
+                </p>
               </div>
-              <h3 className="font-bold text-gray-900">Compra</h3>
-              <p className="text-sm text-gray-600">
-                El cliente realiza una compra en el negocio
-              </p>
+              {/* Paso 2 */}
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <ShoppingCart className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white border-2 border-purple-200 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-bold text-sm">2</span>
+                  </div>
+                </div>
+                <h3 className="font-bold text-gray-900 text-lg">Compra</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  El cliente realiza una compra en el negocio y solicita su
+                  sello digital
+                </p>
+              </div>
+              {/* Paso 3 */}
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <Stamp className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white border-2 border-purple-200 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-bold text-sm">3</span>
+                  </div>
+                </div>
+                <h3 className="font-bold text-gray-900 text-lg">
+                  Sello Digital
+                </h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  El negocio emite un sello digital al cliente a través de la
+                  aplicación
+                </p>
+              </div>
+              {/* Paso 4 */}
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg">
+                    <Gift className="w-10 h-10 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white border-2 border-purple-200 rounded-full flex items-center justify-center">
+                    <span className="text-purple-600 font-bold text-sm">4</span>
+                  </div>
+                </div>
+                <h3 className="font-bold text-gray-900 text-lg">Recompensa</h3>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  Al completar los sellos, el cliente recibe automáticamente su
+                  recompensa
+                </p>
+              </div>
             </div>
+          </div>
 
-            {/* Paso 3 */}
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-green-500 flex items-center justify-center mx-auto">
-                <Stamp className="w-9 h-9 text-white" />
-              </div>
-              <h3 className="font-bold text-gray-900">Sello</h3>
-              <p className="text-sm text-gray-600">
-                El negocio emite un sello digital al cliente
+          {/* Call to action */}
+          <div className="text-center mt-16">
+            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                ¿Listo para empezar?
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Únete a FirulApp y transforma la forma en que fidelizas a tus
+                clientes
               </p>
-            </div>
-
-            {/* Paso 4 */}
-            <div className="text-center space-y-4">
-              <div className="w-20 h-20 rounded-full bg-red-500 flex items-center justify-center mx-auto">
-                <Gift className="w-9 h-9 text-white" />
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold"
+                >
+                  <Link href="/negocio/registro">
+                    <Users className="w-5 h-5 mr-2" />
+                    Registrarme como Negocio
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gray-100 text-gray-700 font-bold hover:bg-gray-200 border border-gray-200"
+                >
+                  <Link href="/cliente/registro">
+                    <Smartphone className="w-5 h-5 mr-2" />
+                    Registrarme como Cliente
+                  </Link>
+                </Button>
               </div>
-              <h3 className="font-bold text-gray-900">Recompensa</h3>
-              <p className="text-sm text-gray-600">
-                Al completar los sellos, el cliente recibe su recompensa
-              </p>
             </div>
           </div>
         </section>
@@ -243,6 +339,6 @@ export default function LandingPage() {
           </div>
         </footer>
       </div>
-    </>
+    </PublicRoute>
   );
 }

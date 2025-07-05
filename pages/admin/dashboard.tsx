@@ -36,6 +36,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import ProtectedRoute from "../../components/shared/ProtectedRoute";
+import AuthenticatedLayout from "../../components/shared/AuthenticatedLayout";
 
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -71,12 +73,14 @@ export default function AdminDashboard() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando dashboard...</p>
+      <ProtectedRoute allowedUserTypes={["admin"]}>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Cargando dashboard...</p>
+          </div>
         </div>
-      </div>
+      </ProtectedRoute>
     );
   }
 
@@ -93,7 +97,7 @@ export default function AdminDashboard() {
   }
   */
   return (
-    <>
+    <ProtectedRoute allowedUserTypes={["admin"]}>
       <Head>
         <title>Dashboard - FirulApp Admin</title>
         <meta
@@ -102,34 +106,9 @@ export default function AdminDashboard() {
         />
       </Head>
 
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 py-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Dashboard del Negocio
-                </h1>
-                <p className="text-gray-600">Negocio 1 - Cafeteria </p>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <Button variant="outline" size="sm">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Configuración
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handleLogout}>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Cerrar Sesión
-                </Button>
-              </div>
-            </div>
-          </div>
-        </header>
-
+      <AuthenticatedLayout>
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Estadísticas principales */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
@@ -461,8 +440,8 @@ export default function AdminDashboard() {
               </div>
             </CardContent>
           </Card>
-        </main>
-      </div>
-    </>
+        </div>
+      </AuthenticatedLayout>
+    </ProtectedRoute>
   );
 }

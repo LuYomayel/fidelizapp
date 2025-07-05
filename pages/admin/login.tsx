@@ -2,12 +2,16 @@ import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { LogIn, Shield, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { LogIn, Shield, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { LoginBusinessDto } from "../../shared";
 import { useAuth } from "@/contexts/AuthContext";
 import { IBusiness } from "@/shared";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // TODO: Importar contexto de admin cuando esté listo
 // import { useAdmin } from '@/contexts/AdminContext';
@@ -94,7 +98,7 @@ export default function AdminLogin() {
         />
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
@@ -107,7 +111,7 @@ export default function AdminLogin() {
             </Link>
 
             <div className="flex justify-center mb-6">
-              <div className="w-16 h-16 bg-gradient-secondary rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Shield className="w-8 h-8 text-white" />
               </div>
             </div>
@@ -121,124 +125,112 @@ export default function AdminLogin() {
           </div>
 
           {/* Formulario */}
-          <div className="card">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="label label-required">
-                  Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  required
-                  className={`input-field ${error ? "input-error" : ""}`}
-                  placeholder="tu@email.com"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div>
-                <label htmlFor="password" className="label label-required">
-                  Contraseña
-                </label>
-                <div className="relative">
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? "text" : "password"}
+          <Card>
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Label htmlFor="email" className="label label-required">
+                    Email
+                  </Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
                     required
-                    className={`input-field pr-12 ${
-                      error ? "input-error" : ""
-                    }`}
-                    placeholder="Tu contraseña"
-                    value={formData.password}
+                    className={`${error ? "border-red-500" : ""}`}
+                    placeholder="tu@email.com"
+                    value={formData.email}
                     onChange={handleChange}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
                 </div>
-              </div>
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                  <p className="text-red-800 text-sm">{error}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="btn-secondary w-full"
-              >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="loading-spinner mr-2"></div>
-                    Iniciando sesión...
+                <div>
+                  <Label htmlFor="password" className="label label-required">
+                    Contraseña
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      required
+                      className={`pr-12 ${error ? "border-red-500" : ""}`}
+                      placeholder="Tu contraseña"
+                      value={formData.password}
+                      onChange={handleChange}
+                    />
                   </div>
-                ) : (
-                  <div className="flex items-center justify-center">
-                    <LogIn className="w-5 h-5 mr-2" />
-                    Iniciar Sesión
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-red-800 text-sm">{error}</p>
                   </div>
                 )}
-              </button>
 
-              {/* Separador */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">O</span>
-                </div>
-              </div>
-
-              {/* Botón de Google */}
-              <GoogleSignInButton
-                text="Continuar con Google"
-                disabled={isLoading}
-              />
-            </form>
-
-            <div className="mt-6 text-center">
-              <p className="text-gray-600">
-                ¿No tienes cuenta?{" "}
-                <Link
-                  href="/negocio/registro"
-                  className="text-secondary-600 hover:text-secondary-700 font-medium"
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700"
                 >
-                  Registra tu negocio
-                </Link>
-              </p>
-            </div>
+                  {isLoading ? (
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="w-5 h-5 mr-2" />
+                      Iniciando sesión...
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center">
+                      <LogIn className="w-5 h-5 mr-2" />
+                      Iniciar Sesión
+                    </div>
+                  )}
+                </Button>
 
-            {/* Información de prueba para desarrollo */}
-            <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <h4 className="text-sm font-medium text-yellow-800 mb-2">
-                Datos de prueba:
-              </h4>
-              <p className="text-sm text-yellow-700">
-                Email:{" "}
-                <code className="bg-yellow-100 px-1 rounded">
-                  admin@cafearoma.com
-                </code>
-              </p>
-              <p className="text-sm text-yellow-700">
-                Contraseña:{" "}
-                <code className="bg-yellow-100 px-1 rounded">admin123</code>
-              </p>
-            </div>
+                {/* Separador */}
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">O</span>
+                  </div>
+                </div>
+
+                {/* Botón de Google */}
+                <GoogleSignInButton
+                  text="Continuar con Google"
+                  disabled={isLoading}
+                />
+              </form>
+
+              <div className="mt-6 text-center">
+                <p className="text-gray-600">
+                  ¿No tienes cuenta?{" "}
+                  <Link
+                    href="/negocio/registro"
+                    className="text-secondary-600 hover:text-secondary-700 font-medium"
+                  >
+                    Registra tu negocio
+                  </Link>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Información de prueba para desarrollo */}
+          <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h4 className="text-sm font-medium text-yellow-800 mb-2">
+              Datos de prueba:
+            </h4>
+            <p className="text-sm text-yellow-700">
+              Email:{" "}
+              <code className="bg-yellow-100 px-1 rounded">
+                admin@cafearoma.com
+              </code>
+            </p>
+            <p className="text-sm text-yellow-700">
+              Contraseña:{" "}
+              <code className="bg-yellow-100 px-1 rounded">admin123</code>
+            </p>
           </div>
         </div>
       </div>
