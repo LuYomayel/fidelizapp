@@ -373,6 +373,7 @@ export default function ClientRedemptionHistory() {
       </div>
 
       {/* Paginación */}
+      {/*
       {totalPages > 1 && (
         <Card>
           <CardContent className="pt-6">
@@ -407,6 +408,7 @@ export default function ClientRedemptionHistory() {
           </CardContent>
         </Card>
       )}
+      */}
     </div>
   );
 }

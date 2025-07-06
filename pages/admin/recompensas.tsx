@@ -51,61 +51,21 @@ import {
 import { AuthenticatedLayout } from "@/components/shared/AuthenticatedLayout";
 import { api } from "@/lib/api-client";
 import { toast } from "react-hot-toast";
-
-// Interfaces
-interface Reward {
-  id: number;
-  name: string;
-  description: string;
-  requiredStamps: number;
-  stampsCost: number;
-  image?: string;
-  active: boolean;
-  expirationDate?: Date;
-  stock?: number;
-  specialConditions?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface RewardStatistics {
-  totalRewards: number;
-  activeRewards: number;
-  totalRedemptions: number;
-  mostRedeemedReward?: {
-    name: string;
-    redemptions: number;
-  };
-}
-
-interface RewardRedemption {
-  id: number;
-  stampsSpent: number;
-  redeemedAt: Date;
-  client: {
-    firstName: string;
-    lastName: string;
-    email: string;
-  };
-  reward: {
-    name: string;
-    description: string;
-  };
-}
+import { IReward, IRewardRedemption, IRewardStatistics } from "@shared";
 
 export default function RecompensasPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [rewards, setRewards] = useState<Reward[]>([]);
-  const [statistics, setStatistics] = useState<RewardStatistics | null>(null);
-  const [redemptions, setRedemptions] = useState<RewardRedemption[]>([]);
+  const [rewards, setRewards] = useState<IReward[]>([]);
+  const [statistics, setStatistics] = useState<IRewardStatistics | null>(null);
+  const [redemptions, setRedemptions] = useState<IRewardRedemption[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<
     "all" | "active" | "inactive"
   >("all");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
+  const [selectedReward, setSelectedReward] = useState<IReward | null>(null);
 
   // Estados para formularios
   const [formData, setFormData] = useState({
@@ -131,7 +91,10 @@ export default function RecompensasPage() {
         await Promise.all([
           api.rewards.getAll(),
           api.rewards.getStatistics(),
-          api.rewards.getRedemptions(1, 10),
+          api.rewards.getRedemptions({
+            page: 1,
+            limit: 10,
+          }),
         ]);
 
       if (rewardsResponse.success) {
@@ -139,7 +102,7 @@ export default function RecompensasPage() {
       }
 
       if (statsResponse.success) {
-        setStatistics(statsResponse.data);
+        setStatistics(statsResponse.data || null);
       }
 
       if (redemptionsResponse.success) {
@@ -241,7 +204,7 @@ export default function RecompensasPage() {
     setSelectedReward(null);
   };
 
-  const openEditDialog = (reward: Reward) => {
+  const openEditDialog = (reward: IReward) => {
     setSelectedReward(reward);
     setFormData({
       name: reward.name,
@@ -326,7 +289,7 @@ export default function RecompensasPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Activas</p>
                   <p className="text-2xl font-bold text-green-600">
-                    {statistics?.activeRewards || 0}
+                    {statistics?.totalRewards || 0}
                   </p>
                 </div>
                 <CheckCircle className="w-8 h-8 text-green-600" />

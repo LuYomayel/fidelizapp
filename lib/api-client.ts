@@ -30,6 +30,7 @@ import {
   RedemptionStatus,
   IReward,
   IRewardRedemption,
+  IRewardStatistics,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -536,7 +537,8 @@ export const api = {
 
     // Obtener estadísticas de recompensas
     getStatistics: () =>
-      apiClient.get<{
+      apiClient.get<IRewardStatistics>("/rewards/statistics"),
+    /*
         totalRewards: number;
         totalRedemptions: number;
         pendingRedemptions: number;
@@ -544,7 +546,7 @@ export const api = {
           name: string;
           redemptions: number;
         };
-      }>("/rewards/statistics"),
+        */
 
     // Expirar códigos vencidos (tarea administrativa)
     expireOldRedemptions: () => apiClient.post("/rewards/expire-old"),

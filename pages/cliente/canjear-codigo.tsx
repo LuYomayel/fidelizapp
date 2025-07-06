@@ -51,7 +51,7 @@ export default function CanjearCodigoPage() {
         });
       }
       setIsLoading(false);
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       setResultado({
         success: false,
