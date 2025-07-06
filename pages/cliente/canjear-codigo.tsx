@@ -8,8 +8,9 @@ import {
 } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { QrCode, CheckCircle, AlertCircle } from "lucide-react";
-import ProtectedRoute from "../../components/shared/ProtectedRoute";
-import AuthenticatedLayout from "../../components/shared/AuthenticatedLayout";
+import { ProtectedRoute } from "../../components/shared/ProtectedRoute";
+import { AuthenticatedLayout } from "../../components/shared/AuthenticatedLayout";
+import { api } from "@/lib/api-client";
 
 export default function CanjearCodigoPage() {
   const [codigo, setCodigo] = useState("");
@@ -27,11 +28,21 @@ export default function CanjearCodigoPage() {
     setResultado(null);
 
     // Simular llamada a API
-    setTimeout(() => {
-      if (codigo.toLowerCase().includes("test")) {
+    try {
+      const response = await api.clientCards.redeem({
+        code: codigo,
+      });
+      console.log("response", response);
+      if (response.success) {
         setResultado({
           success: true,
-          message: "¡Código canjeado exitosamente! Has ganado 1 sello.",
+          message: `¡Código canjeado exitosamente! Has ganado ${
+            response.data?.stampsEarned || 0
+          } ${
+            response.data?.stampsEarned && response.data?.stampsEarned > 1
+              ? "sellos"
+              : "sello"
+          }.`,
         });
       } else {
         setResultado({
@@ -40,7 +51,14 @@ export default function CanjearCodigoPage() {
         });
       }
       setIsLoading(false);
-    }, 1500);
+    } catch (error) {
+      console.log(error);
+      setResultado({
+        success: false,
+        message: error.message || "Error al canjear el sello.",
+      });
+      setIsLoading(false);
+    }
   };
 
   return (

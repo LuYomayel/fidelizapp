@@ -23,8 +23,9 @@ import {
   QrCode,
 } from "lucide-react";
 
-import { BusinessStatistics, Client } from "../../shared";
+import { BusinessStatistics, Client, IClientCard } from "../../shared";
 import { formatearNombreCompleto } from "@/utils";
+import { api, apiClient } from "@/lib/api-client";
 
 // Componentes shadcn/ui
 import { Button } from "@/components/ui/button";
@@ -35,15 +36,21 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import ProtectedRoute from "../../components/shared/ProtectedRoute";
-import AuthenticatedLayout from "../../components/shared/AuthenticatedLayout";
+import { ProtectedRoute } from "../../components/shared/ProtectedRoute";
+import { AuthenticatedLayout } from "../../components/shared/AuthenticatedLayout";
 
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [statistics, setStatistics] = useState<BusinessStatistics | null>(null);
-  const [recentClients, setRecentClients] = useState<Client[]>([]);
+  const [recentClients, setRecentClients] = useState<IClientCard[]>([]);
 
+  //Statistics
+  const [totalStamps, setTotalStamps] = useState(0);
+  const [activeClients, setActiveClients] = useState(0);
+  const [rewardsExchanged, setRewardsExchanged] = useState(0);
+  const [clientRetention, setClientRetention] = useState(0);
+
+  //Recent Clients
   const router = useRouter();
 
   useEffect(() => {
@@ -56,6 +63,15 @@ export default function AdminDashboard() {
 
       // TODO: Reemplazar con llamadas reales a API
       //await simularRespuestaAPI(null, 1000);
+      const { data, success } = await api.businesses.getDashboard();
+      if (success && data) {
+        setActiveClients(data.activeClients || 0);
+        setTotalStamps(data.totalStamps || 0);
+        setRewardsExchanged(data.rewardsExchanged || 0);
+        setClientRetention(data.clientRetention || 0);
+        setRecentClients(data.recentClients || []);
+        console.log("response", data.totalStamps);
+      }
 
       //setStatistics(ESTADISTICAS_MOCK);
       //setRecentClients(CLIENTES_MOCK.slice(0, 5));
@@ -122,7 +138,7 @@ export default function AdminDashboard() {
                 <div className="text-2xl font-bold text-blue-600">
                   {/* TODO: Agregar sellos emitidos */}
                   {/* {statistics.totalStamps || 124} */}
-                  124
+                  {totalStamps}
                 </div>
                 <div className="flex items-center text-xs text-green-600">
                   <TrendingUp className="w-3 h-3 mr-1" />
@@ -142,7 +158,7 @@ export default function AdminDashboard() {
                 <div className="text-2xl font-bold text-blue-600">
                   {/* TODO: Agregar clientes activos */}
                   {/* {statistics.activeClients || 45} */}
-                  45
+                  {activeClients}
                 </div>
                 <div className="flex items-center text-xs text-green-600">
                   <TrendingUp className="w-3 h-3 mr-1" />
@@ -162,7 +178,7 @@ export default function AdminDashboard() {
                 <div className="text-2xl font-bold text-blue-600">
                   {/* TODO: Agregar recompensas canjeadas */}
                   {/* {statistics.rewardsExchanged || 12} */}
-                  12
+                  {rewardsExchanged}
                 </div>
                 <div className="flex items-center text-xs text-green-600">
                   <TrendingUp className="w-3 h-3 mr-1" />
@@ -180,7 +196,7 @@ export default function AdminDashboard() {
                 <div className="text-2xl font-bold text-blue-600">
                   {/* TODO: Agregar retención de clientes */}
                   {/* {statistics.clientRetention || 78.5}% */}
-                  78.5%
+                  {clientRetention}%
                 </div>
                 <div className="flex items-center text-xs text-green-600">
                   <TrendingUp className="w-3 h-3 mr-1" />
@@ -275,11 +291,18 @@ export default function AdminDashboard() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Button className="w-full justify-start">
+                  <Button
+                    className="w-full justify-start"
+                    onClick={() => router.push("/admin/clientes")}
+                  >
                     <Users className="w-4 h-4 mr-2" />
                     Gestionar Clientes
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => router.push("/admin/recompensas")}
+                  >
                     <Gift className="w-4 h-4 mr-2" />
                     Configurar Premios
                   </Button>
@@ -305,6 +328,14 @@ export default function AdminDashboard() {
                   Clientes Recientes
                 </CardTitle>
                 <CardDescription>Últimos clientes registrados</CardDescription>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => router.push("/admin/clientes")}
+                  className="w-fit"
+                >
+                  Ver Todos
+                </Button>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
@@ -316,14 +347,14 @@ export default function AdminDashboard() {
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                           <span className="text-sm font-medium text-blue-600">
-                            {client.firstName.charAt(0)}
+                            {client.client?.firstName?.charAt(0) || ""}
                           </span>
                         </div>
                         <div>
                           <p className="font-medium text-sm">
                             {formatearNombreCompleto(
-                              client.firstName,
-                              client.lastName
+                              client.client?.firstName || "",
+                              client.client?.lastName || ""
                             )}
                           </p>
                           <p className="text-xs text-gray-500">
@@ -436,6 +467,36 @@ export default function AdminDashboard() {
                   <p className="text-sm text-gray-600">
                     El engagement de clientes está en aumento
                   </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Nueva sección de Reclamos Pendientes */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Gift className="w-5 h-5 text-orange-600" />
+                Reclamos Pendientes
+              </CardTitle>
+              <CardDescription>
+                Recompensas canjeadas esperando entrega
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Aquí irían los reclamos pendientes - implementar cuando se tenga el endpoint */}
+                <div className="text-center py-8 text-gray-500">
+                  <Clock className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                  <p>No hay reclamos pendientes</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => router.push("/admin/reclamos")}
+                  >
+                    Ver todos los reclamos
+                  </Button>
                 </div>
               </div>
             </CardContent>

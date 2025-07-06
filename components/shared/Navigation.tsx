@@ -18,8 +18,11 @@ export default function Navigation({
   };
 
   const getUserDisplayName = () => {
-    if (user?.name) return user.name;
-    if (user?.email) return user.email;
+    if (userType === "client") {
+      return user?.firstName + " " + user?.lastName;
+    } else {
+      return user?.businessName;
+    }
     return "Usuario";
   };
 
@@ -40,7 +43,9 @@ export default function Navigation({
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             {title && (
-              <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+              <h1 className="text-xl font-semibold text-gray-900 text-ellipsis">
+                {title}
+              </h1>
             )}
           </div>
 

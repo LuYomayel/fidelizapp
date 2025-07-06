@@ -20,6 +20,16 @@ import {
   ClientCardFilters,
   StampType,
   PurchaseType,
+  IBusinessClient,
+  IDashboard,
+  // Nuevas interfaces para sistema de reclamos
+  IRedemptionTicket,
+  IRedemptionDashboard,
+  IDeliverRedemptionDto,
+  IRedemptionFilters,
+  RedemptionStatus,
+  IReward,
+  IRewardRedemption,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -269,6 +279,13 @@ export const apiClient = {
       headers: headers as any,
     }),
 
+  patch: <T = unknown>(endpoint: string, data?: unknown, headers?: unknown) =>
+    fetchAPI<ApiResponse<T>>(endpoint, {
+      method: "PATCH",
+      body: data ? JSON.stringify(data) : undefined,
+      headers: headers as any,
+    }),
+
   delete: <T = unknown>(endpoint: string, headers?: Record<string, string>) =>
     fetchAPI<ApiResponse<T>>(endpoint, { method: "DELETE", headers }),
 
@@ -307,6 +324,7 @@ export const api = {
   businesses: {
     get: (id: string) => apiClient.get(`/business/${id}`),
     getAll: () => apiClient.get("/business"),
+    getDashboard: () => apiClient.get<IDashboard>("/business/dashboard"),
     register: (data: any) => apiClient.post("/business/register", data),
     login: (data: LoginBusinessDto) => apiClient.post("/business/login", data),
     update: (
@@ -322,6 +340,12 @@ export const api = {
       apiClient.post<IStamp>("/business/stamps", data),
     getHistory: (params?: StampFilters) => {
       const queryParams = new URLSearchParams();
+      if (!params) {
+        console.log("params", params);
+        return apiClient.get<PaginatedResponse<IStamp>>(
+          `/business/stamps/get-history?page=1&limit=10`
+        );
+      }
       if (params?.page) queryParams.append("page", params.page.toString());
       if (params?.limit) queryParams.append("limit", params.limit.toString());
       if (params?.search) queryParams.append("search", params.search);
@@ -343,6 +367,10 @@ export const api = {
       apiClient.get<StampSummaryDto>("/business/stamps/statistics"),
     findByCode: (code: string) =>
       apiClient.get<IStamp>(`/business/stamps/${code}`),
+    getBusinessClients: () =>
+      apiClient.get<{ clients: IBusinessClient[]; total: number }>(
+        "/business/stamps/clients"
+      ),
     cancel: (id: string) => apiClient.delete<IStamp>(`/business/stamps/${id}`),
   },
   clientCards: {
@@ -352,6 +380,7 @@ export const api = {
         clientCard: IClientCard;
         stamp: IStamp;
         redemption: IStampRedemption;
+        stampsEarned: number;
       }>("/client-cards/redeem", data),
 
     // Obtener todas las tarjetas del cliente
@@ -366,8 +395,8 @@ export const api = {
       apiClient.get<IStampRedemption[]>(`/client-cards/${businessId}/history`),
 
     // Obtener estadísticas de tarjetas del cliente
-    getStatistics: () =>
-      apiClient.get<ClientCardSummaryDto>("/client-cards/statistics"),
+    //getStatistics: () =>
+    // apiClient.get<ClientCardSummaryDto>("/client-cards/statistics"),
   },
   quickStamps: {
     // Venta pequeña (1-2 sellos)
@@ -385,6 +414,140 @@ export const api = {
     // Venta especial (5+ sellos)
     special: () =>
       apiClient.post<IStamp>("/business/stamps/quick", { saleValue: 10000 }),
+  },
+  rewards: {
+    // Crear recompensa
+    create: (data: {
+      name: string;
+      description: string;
+      requiredStamps: number;
+      stampsCost: number;
+      image?: string;
+      expirationDate?: Date;
+      stock?: number;
+      specialConditions?: string;
+    }) => apiClient.post<IReward>("/rewards", data),
+
+    // Obtener recompensas del negocio
+    getAll: () => apiClient.get<IReward[]>("/rewards"),
+
+    // Obtener recompensas de un negocio específico (para clientes)
+    getByBusiness: (businessId: number) =>
+      apiClient.get<IReward[]>(`/rewards/business/${businessId}`),
+
+    // Actualizar recompensa
+    update: (
+      rewardId: number,
+      data: {
+        name?: string;
+        description?: string;
+        requiredStamps?: number;
+        stampsCost?: number;
+        image?: string;
+        expirationDate?: Date;
+        stock?: number;
+        specialConditions?: string;
+        active?: boolean;
+      }
+    ) => apiClient.put<IReward>(`/rewards/${rewardId}`, data),
+
+    // Eliminar recompensa
+    delete: (rewardId: number) => apiClient.delete(`/rewards/${rewardId}`),
+
+    // Canjear recompensa (MEJORADO - retorna ticket)
+    redeem: (rewardId: number, businessId: number) =>
+      apiClient.post<IRedemptionTicket>(`/rewards/${rewardId}/redeem`, {
+        businessId,
+      }),
+
+    // Dashboard de reclamos para el negocio
+    getRedemptionDashboard: () =>
+      apiClient.get<IRedemptionDashboard>("/rewards/redemptions/dashboard"),
+
+    // Marcar recompensa como entregada
+    deliverRedemption: (
+      redemptionId: number,
+      deliveredBy: string,
+      notes?: string
+    ) =>
+      apiClient.patch<IRewardRedemption>(
+        `/rewards/redemptions/${redemptionId}/deliver`,
+        {
+          deliveredBy,
+          notes,
+        }
+      ),
+
+    // Buscar reclamo por código
+    findByCode: (redemptionCode: string) =>
+      apiClient.get<IRewardRedemption>(
+        `/rewards/redemptions/code/${redemptionCode}`
+      ),
+
+    // Obtener historial de canjes con filtros
+    getRedemptions: (filters: IRedemptionFilters = {}) => {
+      const queryParams = new URLSearchParams();
+
+      if (filters.page) queryParams.append("page", filters.page.toString());
+      if (filters.limit) queryParams.append("limit", filters.limit.toString());
+      if (filters.status) queryParams.append("status", filters.status);
+      if (filters.dateFrom)
+        queryParams.append("dateFrom", filters.dateFrom.toISOString());
+      if (filters.dateTo)
+        queryParams.append("dateTo", filters.dateTo.toISOString());
+      if (filters.clientId)
+        queryParams.append("clientId", filters.clientId.toString());
+      if (filters.rewardId)
+        queryParams.append("rewardId", filters.rewardId.toString());
+
+      const queryString = queryParams.toString();
+      return apiClient.get<{
+        redemptions: IRewardRedemption[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>(`/rewards/redemptions${queryString ? `?${queryString}` : ""}`);
+    },
+
+    // Obtener historial de reclamos del cliente
+    getMyHistory: (filters: IRedemptionFilters = {}) => {
+      const queryParams = new URLSearchParams();
+
+      if (filters.page) queryParams.append("page", filters.page.toString());
+      if (filters.limit) queryParams.append("limit", filters.limit.toString());
+      if (filters.status) queryParams.append("status", filters.status);
+      if (filters.dateFrom)
+        queryParams.append("dateFrom", filters.dateFrom.toISOString());
+      if (filters.dateTo)
+        queryParams.append("dateTo", filters.dateTo.toISOString());
+      if (filters.rewardId)
+        queryParams.append("rewardId", filters.rewardId.toString());
+
+      const queryString = queryParams.toString();
+      return apiClient.get<{
+        redemptions: IRewardRedemption[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>(
+        `/rewards/redemptions/my-history${queryString ? `?${queryString}` : ""}`
+      );
+    },
+
+    // Obtener estadísticas de recompensas
+    getStatistics: () =>
+      apiClient.get<{
+        totalRewards: number;
+        totalRedemptions: number;
+        pendingRedemptions: number;
+        mostRedeemedReward?: {
+          name: string;
+          redemptions: number;
+        };
+      }>("/rewards/statistics"),
+
+    // Expirar códigos vencidos (tarea administrativa)
+    expireOldRedemptions: () => apiClient.post("/rewards/expire-old"),
   },
 };
 

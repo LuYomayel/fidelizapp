@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import PublicRoute from "../components/shared/PublicRoute";
-import AuthenticatedLayout from "../components/shared/AuthenticatedLayout";
+import { AuthenticatedLayout } from "../components/shared/AuthenticatedLayout";
 
 export default function TestAuthPage() {
   const { tokens, user, userType, isLoading, login, logout } = useAuth();

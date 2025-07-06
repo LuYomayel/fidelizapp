@@ -40,7 +40,7 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-2">
+            <div className="flex flex-col sm:flex-row items-center space-x-2">
               <Button
                 asChild
                 variant="ghost"
@@ -52,7 +52,7 @@ export default function LandingPage() {
                   Iniciar sesión Negocio
                 </Link>
               </Button>
-              <span className="text-gray-400 text-sm">|</span>
+              <span className="text-gray-400 text-sm hidden sm:block">|</span>
               <Button
                 asChild
                 variant="ghost"
@@ -60,7 +60,7 @@ export default function LandingPage() {
                 className="flex items-center gap-1"
               >
                 <Link href="/cliente/login">
-                  <Smartphone className="w-4 h-4 mr-1 text-purple-600" />
+                  <Smartphone className="w-4 h-4 sm:mr-1 text-purple-600" />
                   Iniciar sesión Cliente
                 </Link>
               </Button>
