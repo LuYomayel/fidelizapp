@@ -8,6 +8,8 @@ import { Badge } from "../../components/ui/badge";
 import { Alert } from "../../components/ui/alert";
 import { api } from "../../lib/api-client";
 import { StampType, PurchaseType, IStamp, CreateStampDto } from "@shared";
+import { AuthenticatedLayout } from "@/components/shared/AuthenticatedLayout";
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 export default function GenerarCodigoPage() {
   const router = useRouter();
@@ -223,163 +225,167 @@ export default function GenerarCodigoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        <div className="text-center mb-8">
-          <div className="text-6xl mb-4">🎫</div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Generar Código de Sello
-          </h1>
-          <p className="text-gray-600">
-            Crea un código personalizado que el cliente puede usar para obtener
-            sellos
-          </p>
-        </div>
-
-        <Card className="p-8">
-          <div className="space-y-6">
-            <div>
-              <Label htmlFor="stampType">Tipo de Sello</Label>
-              <select
-                id="stampType"
-                value={formData.stampType}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    stampType: e.target.value as StampType,
-                  })
-                }
-                className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {stampTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.emoji} {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {formData.stampType === StampType.PURCHASE && (
-              <div>
-                <Label htmlFor="purchaseType">Tipo de Compra</Label>
-                <select
-                  id="purchaseType"
-                  value={formData.purchaseType}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      purchaseType: e.target.value as PurchaseType,
-                    })
-                  }
-                  className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  {purchaseTypeOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.emoji} {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div>
-              <Label htmlFor="stampValue">Cantidad de Sellos</Label>
-              <select
-                id="stampValue"
-                value={formData.stampValue.toString()}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    stampValue: parseInt(e.target.value),
-                  })
-                }
-                className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                  <option key={num} value={num.toString()}>
-                    {num} sello{num > 1 ? "s" : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <Label htmlFor="description">Descripción</Label>
-              <Input
-                id="description"
-                type="text"
-                placeholder="Ej: Compra de café grande con medialunas"
-                value={formData.description}
-                onChange={(e) =>
-                  setFormData({ ...formData, description: e.target.value })
-                }
-                className="mt-2"
-                required
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Describe la acción que genera este sello
+    <ProtectedRoute allowedUserTypes={["admin"]}>
+      <AuthenticatedLayout>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-2xl mx-auto px-4">
+            <div className="text-center mb-8">
+              <div className="text-6xl mb-4">🎫</div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Generar Código de Sello
+              </h1>
+              <p className="text-gray-600">
+                Crea un código personalizado que el cliente puede usar para
+                obtener sellos
               </p>
             </div>
 
-            {/* Previsualización */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold mb-2">Previsualización:</h3>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold">
-                    +{formData.stampValue}
-                  </span>
-                </div>
+            <Card className="p-8">
+              <div className="space-y-6">
                 <div>
-                  <p className="font-medium">
-                    {formData.description || "Descripción del sello"}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    {
-                      stampTypeOptions.find(
-                        (t) => t.value === formData.stampType
-                      )?.label
+                  <Label htmlFor="stampType">Tipo de Sello</Label>
+                  <select
+                    id="stampType"
+                    value={formData.stampType}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        stampType: e.target.value as StampType,
+                      })
                     }
-                    {formData.purchaseType &&
-                      formData.stampType === StampType.PURCHASE &&
-                      ` • ${
-                        purchaseTypeOptions.find(
-                          (p) => p.value === formData.purchaseType
-                        )?.label
-                      }`}
+                    className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {stampTypeOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.emoji} {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {formData.stampType === StampType.PURCHASE && (
+                  <div>
+                    <Label htmlFor="purchaseType">Tipo de Compra</Label>
+                    <select
+                      id="purchaseType"
+                      value={formData.purchaseType}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          purchaseType: e.target.value as PurchaseType,
+                        })
+                      }
+                      className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {purchaseTypeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.emoji} {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                <div>
+                  <Label htmlFor="stampValue">Cantidad de Sellos</Label>
+                  <select
+                    id="stampValue"
+                    value={formData.stampValue.toString()}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        stampValue: parseInt(e.target.value),
+                      })
+                    }
+                    className="w-full mt-2 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                      <option key={num} value={num.toString()}>
+                        {num} sello{num > 1 ? "s" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <Label htmlFor="description">Descripción</Label>
+                  <Input
+                    id="description"
+                    type="text"
+                    placeholder="Ej: Compra de café grande con medialunas"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    className="mt-2"
+                    required
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Describe la acción que genera este sello
                   </p>
                 </div>
+
+                {/* Previsualización */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h3 className="font-semibold mb-2">Previsualización:</h3>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <span className="text-blue-600 font-bold">
+                        +{formData.stampValue}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="font-medium">
+                        {formData.description || "Descripción del sello"}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {
+                          stampTypeOptions.find(
+                            (t) => t.value === formData.stampType
+                          )?.label
+                        }
+                        {formData.purchaseType &&
+                          formData.stampType === StampType.PURCHASE &&
+                          ` • ${
+                            purchaseTypeOptions.find(
+                              (p) => p.value === formData.purchaseType
+                            )?.label
+                          }`}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {error && <Alert variant="destructive">{error}</Alert>}
+
+                <Button
+                  onClick={handleGenerateCode}
+                  disabled={isLoading || !formData.description.trim()}
+                  className="w-full"
+                  size="lg"
+                >
+                  {isLoading ? "Generando..." : "Generar Código Personalizado"}
+                </Button>
               </div>
+            </Card>
+
+            <div className="mt-8 flex justify-center space-x-4">
+              <Button
+                onClick={() => router.push("/admin/generar-codigo-rapido")}
+                variant="outline"
+              >
+                ← Código Rápido
+              </Button>
+              <Button
+                onClick={() => router.push("/admin/dashboard")}
+                variant="ghost"
+              >
+                Dashboard
+              </Button>
             </div>
-
-            {error && <Alert variant="destructive">{error}</Alert>}
-
-            <Button
-              onClick={handleGenerateCode}
-              disabled={isLoading || !formData.description.trim()}
-              className="w-full"
-              size="lg"
-            >
-              {isLoading ? "Generando..." : "Generar Código Personalizado"}
-            </Button>
           </div>
-        </Card>
-
-        <div className="mt-8 flex justify-center space-x-4">
-          <Button
-            onClick={() => router.push("/admin/generar-codigo-rapido")}
-            variant="outline"
-          >
-            ← Código Rápido
-          </Button>
-          <Button
-            onClick={() => router.push("/admin/dashboard")}
-            variant="ghost"
-          >
-            Dashboard
-          </Button>
         </div>
-      </div>
-    </div>
+      </AuthenticatedLayout>
+    </ProtectedRoute>
   );
 }

@@ -7,6 +7,8 @@ import { Badge } from "../../components/ui/badge";
 import { Alert } from "../../components/ui/alert";
 import { api } from "../../lib/api-client";
 import { IStamp } from "@shared";
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { AuthenticatedLayout } from "@/components/shared/AuthenticatedLayout";
 
 const SALE_PRESETS = [
   {
@@ -48,10 +50,10 @@ const SALE_PRESETS = [
 ];
 
 const QUICK_PRESETS = [
-  { name: "Venta Pequeña", value: 1000, emoji: "💰", stamps: "1-2 sellos" },
-  { name: "Venta Mediana", value: 2500, emoji: "💎", stamps: "2-3 sellos" },
-  { name: "Venta Grande", value: 5000, emoji: "👑", stamps: "3-5 sellos" },
-  { name: "Venta Especial", value: 10000, emoji: "🎯", stamps: "5+ sellos" },
+  { name: "Venta Pequeña", value: 1000, emoji: "💰", stamps: "1 sello" },
+  { name: "Venta Mediana", value: 2500, emoji: "💎", stamps: "2 sellos" },
+  { name: "Venta Grande", value: 5000, emoji: "👑", stamps: "3 sellos" },
+  { name: "Venta Especial", value: 10000, emoji: "🎯", stamps: "3 sellos" },
 ];
 
 export default function GenerarCodigoRapidoPage() {
@@ -121,9 +123,9 @@ export default function GenerarCodigoRapidoPage() {
   };
 
   const getStampCount = (value: number) => {
-    if (value >= 5000) return Math.floor(value / 1000);
-    if (value >= 2000) return 3;
-    if (value >= 1000) return 2;
+    //if (value >= 5000) return Math.floor(value / 1000);
+    if (value >= 2500) return 3;
+    if (value >= 1500) return 2;
     return 1;
   };
 
@@ -225,151 +227,145 @@ export default function GenerarCodigoRapidoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-md mx-auto">
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Generar Código
-          </h1>
-          <p className="text-gray-600">
-            Selecciona el tipo de venta para generar un código rápido
-          </p>
-        </div>
+    <ProtectedRoute allowedUserTypes={["admin"]}>
+      <AuthenticatedLayout>
+        <div className="min-h-screen bg-gray-50 p-4">
+          <div className="max-w-md mx-auto">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Generar Código
+              </h1>
+              <p className="text-gray-600">
+                Selecciona el tipo de venta para generar un código rápido
+              </p>
+            </div>
 
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            {error}
-          </Alert>
-        )}
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                {error}
+              </Alert>
+            )}
 
-        {/* Tabs */}
-        <div className="flex mb-6 bg-white rounded-lg p-1 shadow-sm">
-          <Button
-            variant={activeTab === "presets" ? "default" : "ghost"}
-            onClick={() => setActiveTab("presets")}
-            className="flex-1"
-            size="sm"
-          >
-            🍽️ Productos
-          </Button>
-          <Button
-            variant={activeTab === "quick" ? "default" : "ghost"}
-            onClick={() => setActiveTab("quick")}
-            className="flex-1"
-            size="sm"
-          >
-            💰 Valores
-          </Button>
-        </div>
-
-        {/* Presets por productos */}
-        {activeTab === "presets" && (
-          <div className="space-y-3 mb-6">
-            {SALE_PRESETS.map((preset) => (
-              <Card key={preset.name} className={`p-4 ${preset.color}`}>
-                <Button
-                  onClick={() => handlePresetClick(preset)}
-                  disabled={isLoading}
-                  variant="ghost"
-                  className="w-full h-auto p-4 flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">{preset.emoji}</div>
-                    <div className="text-left">
-                      <div className="font-semibold">{preset.name}</div>
-                      <div className="text-sm text-gray-500">
-                        ${preset.value}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="outline">
-                      {getStampCount(preset.value)} sello
-                      {getStampCount(preset.value) > 1 ? "s" : ""}
-                    </Badge>
-                  </div>
-                </Button>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Presets rápidos */}
-        {activeTab === "quick" && (
-          <div className="space-y-3 mb-6">
-            {QUICK_PRESETS.map((preset) => (
-              <Card key={preset.name} className="p-4">
-                <Button
-                  onClick={() => handleQuickPresetClick(preset)}
-                  disabled={isLoading}
-                  variant="ghost"
-                  className="w-full h-auto p-4 flex items-center justify-between"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">{preset.emoji}</div>
-                    <div className="text-left">
-                      <div className="font-semibold">{preset.name}</div>
-                      <div className="text-sm text-gray-500">
-                        ${preset.value}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="outline">{preset.stamps}</Badge>
-                  </div>
-                </Button>
-              </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Valor personalizado */}
-        <Card className="p-4">
-          <Button
-            onClick={() => setShowCustom(!showCustom)}
-            variant="outline"
-            className="w-full mb-4"
-          >
-            💰 Valor Personalizado
-          </Button>
-
-          {showCustom && (
-            <div className="space-y-3">
-              <Input
-                type="number"
-                placeholder="Valor de la venta en pesos"
-                value={customValue}
-                onChange={(e) => setCustomValue(e.target.value)}
-                min="1"
-                className="text-center text-lg"
-              />
-              <div className="text-center text-sm text-gray-500">
-                Recibirá: {getStampCount(parseInt(customValue) || 0)} sello
-                {getStampCount(parseInt(customValue) || 0) > 1 ? "s" : ""}
-              </div>
+            {/* Tabs */}
+            <div className="flex mb-6 bg-white rounded-lg p-1 shadow-sm">
               <Button
-                onClick={handleCustomValue}
-                disabled={
-                  isLoading || !customValue || parseInt(customValue) <= 0
-                }
-                className="w-full"
+                variant={activeTab === "presets" ? "default" : "ghost"}
+                onClick={() => setActiveTab("presets")}
+                className="flex-1"
+                size="sm"
               >
-                {isLoading ? "Generando..." : "Generar Código"}
+                🍽️ Productos
+              </Button>
+              <Button
+                variant={activeTab === "quick" ? "default" : "ghost"}
+                onClick={() => setActiveTab("quick")}
+                className="flex-1"
+                size="sm"
+              >
+                💰 Valores
               </Button>
             </div>
-          )}
-        </Card>
 
-        <div className="mt-6 text-center">
-          <Button
-            onClick={() => router.push("/admin/dashboard")}
-            variant="ghost"
-            className="text-gray-500"
-          >
-            ← Volver al Dashboard
-          </Button>
+            {/* Presets por productos */}
+            {activeTab === "presets" && (
+              <div className="space-y-3 mb-6">
+                {SALE_PRESETS.map((preset) => (
+                  <Card key={preset.name} className={`p-4 ${preset.color}`}>
+                    <Button
+                      onClick={() => handlePresetClick(preset)}
+                      disabled={isLoading}
+                      variant="ghost"
+                      className="w-full h-auto p-4 flex items-center justify-between"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{preset.emoji}</div>
+                        <div className="text-left">
+                          <div className="font-semibold">{preset.name}</div>
+                          <div className="text-sm text-gray-500">
+                            ${preset.value}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline">
+                          {getStampCount(preset.value)} sello
+                          {getStampCount(preset.value) > 1 ? "s" : ""}
+                        </Badge>
+                      </div>
+                    </Button>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Presets rápidos */}
+            {activeTab === "quick" && (
+              <div className="space-y-3 mb-6">
+                {QUICK_PRESETS.map((preset) => (
+                  <Card key={preset.name} className="p-4">
+                    <Button
+                      onClick={() => handleQuickPresetClick(preset)}
+                      disabled={isLoading}
+                      variant="ghost"
+                      className="w-full h-auto p-4 flex items-center justify-between"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div className="text-2xl">{preset.emoji}</div>
+                        <div className="text-left">
+                          <div className="font-semibold">{preset.name}</div>
+                          <div className="text-sm text-gray-500">
+                            ${preset.value}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant="outline">{preset.stamps}</Badge>
+                      </div>
+                    </Button>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {/* Valor personalizado */}
+            <Card className="p-4">
+              <Button
+                onClick={() => setShowCustom(!showCustom)}
+                variant="outline"
+                className="w-full mb-4"
+              >
+                💰 Valor Personalizado
+              </Button>
+
+              {showCustom && (
+                <div className="space-y-3">
+                  <Input
+                    type="number"
+                    placeholder="Valor de la venta en pesos"
+                    value={customValue}
+                    onChange={(e) => setCustomValue(e.target.value)}
+                    min="1"
+                    className="text-center text-lg"
+                  />
+                  <div className="text-center text-sm text-gray-500">
+                    Recibirá: {getStampCount(parseInt(customValue) || 0)} sello
+                    {getStampCount(parseInt(customValue) || 0) > 1 ? "s" : ""}
+                  </div>
+                  <Button
+                    onClick={handleCustomValue}
+                    disabled={
+                      isLoading || !customValue || parseInt(customValue) <= 0
+                    }
+                    className="w-full"
+                  >
+                    {isLoading ? "Generando..." : "Generar Código"}
+                  </Button>
+                </div>
+              )}
+            </Card>
+          </div>
         </div>
-      </div>
-    </div>
+      </AuthenticatedLayout>
+    </ProtectedRoute>
   );
 }

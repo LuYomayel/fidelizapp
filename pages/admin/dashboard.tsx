@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut,
   TrendingUp,
+  TrendingDown,
   Award,
   Clock,
   Star,
@@ -49,6 +50,11 @@ export default function AdminDashboard() {
   const [activeClients, setActiveClients] = useState(0);
   const [rewardsExchanged, setRewardsExchanged] = useState(0);
   const [clientRetention, setClientRetention] = useState(0);
+  // Growth percentages
+  const [stampsGrowth, setStampsGrowth] = useState(0);
+  const [clientsGrowth, setClientsGrowth] = useState(0);
+  const [rewardsGrowth, setRewardsGrowth] = useState(0);
+  const [retentionGrowth, setRetentionGrowth] = useState(0);
 
   //Recent Clients
   const router = useRouter();
@@ -70,6 +76,11 @@ export default function AdminDashboard() {
         setRewardsExchanged(data.rewardsExchanged || 0);
         setClientRetention(data.clientRetention || 0);
         setRecentClients(data.recentClients || []);
+        // Set growth percentages
+        setStampsGrowth(data.stampsGrowth || 0);
+        setClientsGrowth(data.clientsGrowth || 0);
+        setRewardsGrowth(data.rewardsGrowth || 0);
+        setRetentionGrowth(data.retentionGrowth || 0);
         console.log("response", data.totalStamps);
       }
 
@@ -85,6 +96,23 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     // TODO: Implementar logout real
     router.push("/admin/login");
+  };
+
+  const formatGrowthPercentage = (growth: number) => {
+    const isPositive = growth >= 0;
+    const sign = isPositive ? "+" : "";
+    const color = isPositive ? "text-green-600" : "text-red-600";
+    const icon = isPositive ? (
+      <TrendingUp className="w-3 h-3 mr-1" />
+    ) : (
+      <TrendingDown className="w-3 h-3 mr-1" />
+    );
+
+    return {
+      text: `${sign}${growth.toFixed(1)}% vs mes anterior`,
+      color,
+      icon,
+    };
   };
 
   if (isLoading) {
@@ -140,9 +168,13 @@ export default function AdminDashboard() {
                   {/* {statistics.totalStamps || 124} */}
                   {totalStamps}
                 </div>
-                <div className="flex items-center text-xs text-green-600">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +10% vs mes anterior
+                <div
+                  className={`flex items-center text-xs ${
+                    formatGrowthPercentage(stampsGrowth).color
+                  }`}
+                >
+                  {formatGrowthPercentage(stampsGrowth).icon}
+                  {formatGrowthPercentage(stampsGrowth).text}
                 </div>
               </CardContent>
             </Card>
@@ -160,9 +192,13 @@ export default function AdminDashboard() {
                   {/* {statistics.activeClients || 45} */}
                   {activeClients}
                 </div>
-                <div className="flex items-center text-xs text-green-600">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +5% vs mes anterior
+                <div
+                  className={`flex items-center text-xs ${
+                    formatGrowthPercentage(clientsGrowth).color
+                  }`}
+                >
+                  {formatGrowthPercentage(clientsGrowth).icon}
+                  {formatGrowthPercentage(clientsGrowth).text}
                 </div>
               </CardContent>
             </Card>
@@ -180,9 +216,13 @@ export default function AdminDashboard() {
                   {/* {statistics.rewardsExchanged || 12} */}
                   {rewardsExchanged}
                 </div>
-                <div className="flex items-center text-xs text-green-600">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +18% vs mes anterior
+                <div
+                  className={`flex items-center text-xs ${
+                    formatGrowthPercentage(rewardsGrowth).color
+                  }`}
+                >
+                  {formatGrowthPercentage(rewardsGrowth).icon}
+                  {formatGrowthPercentage(rewardsGrowth).text}
                 </div>
               </CardContent>
             </Card>
@@ -198,9 +238,13 @@ export default function AdminDashboard() {
                   {/* {statistics.clientRetention || 78.5}% */}
                   {clientRetention}%
                 </div>
-                <div className="flex items-center text-xs text-green-600">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +3.5% vs mes anterior
+                <div
+                  className={`flex items-center text-xs ${
+                    formatGrowthPercentage(retentionGrowth).color
+                  }`}
+                >
+                  {formatGrowthPercentage(retentionGrowth).icon}
+                  {formatGrowthPercentage(retentionGrowth).text}
                 </div>
               </CardContent>
             </Card>

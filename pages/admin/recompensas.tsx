@@ -190,6 +190,14 @@ export default function RecompensasPage() {
     }
   };
 
+  const isActive = (reward: IReward) => {
+    return (
+      reward.active &&
+      reward.expirationDate &&
+      new Date(reward.expirationDate) > new Date()
+    );
+  };
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -219,6 +227,11 @@ export default function RecompensasPage() {
       specialConditions: reward.specialConditions || "",
     });
     setIsEditDialogOpen(true);
+  };
+
+  const openCreateDialog = () => {
+    setIsCreateDialogOpen(true);
+    resetForm();
   };
 
   // Filtrar recompensas
@@ -257,7 +270,7 @@ export default function RecompensasPage() {
             </p>
           </div>
           <Button
-            onClick={() => setIsCreateDialogOpen(true)}
+            onClick={() => openCreateDialog()}
             className="bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -432,7 +445,7 @@ export default function RecompensasPage() {
                         <Badge
                           variant={reward.active ? "default" : "destructive"}
                         >
-                          {reward.active ? "Activa" : "Inactiva"}
+                          {isActive(reward) ? "Activa" : "Inactiva"}
                         </Badge>
                       </div>
                       {reward.stock && (
@@ -597,6 +610,7 @@ export default function RecompensasPage() {
                     setFormData({ ...formData, expirationDate: e.target.value })
                   }
                   className="col-span-3"
+                  min={new Date().toISOString().split("T")[0]}
                 />
               </div>
             </div>

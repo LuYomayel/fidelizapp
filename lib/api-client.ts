@@ -341,12 +341,7 @@ export const api = {
       apiClient.post<IStamp>("/business/stamps", data),
     getHistory: (params?: StampFilters) => {
       const queryParams = new URLSearchParams();
-      if (!params) {
-        console.log("params", params);
-        return apiClient.get<PaginatedResponse<IStamp>>(
-          `/business/stamps/get-history?page=1&limit=10`
-        );
-      }
+
       if (params?.page) queryParams.append("page", params.page.toString());
       if (params?.limit) queryParams.append("limit", params.limit.toString());
       if (params?.search) queryParams.append("search", params.search);
@@ -360,9 +355,12 @@ export const api = {
         queryParams.append("dateTo", params.dateTo.toISOString());
 
       const queryString = queryParams.toString();
-      return apiClient.get<PaginatedResponse<IStamp>>(
-        `/business/stamps${queryString ? `?${queryString}` : ""}`
-      );
+      return apiClient.get<{
+        stamps: IStamp[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>(`/business/stamps/get-history${queryString ? `?${queryString}` : ""}`);
     },
     getStatistics: () =>
       apiClient.get<StampSummaryDto>("/business/stamps/statistics"),

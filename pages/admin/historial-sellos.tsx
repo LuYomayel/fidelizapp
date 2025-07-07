@@ -13,7 +13,10 @@ import {
   StampType,
   PurchaseType,
   StampSummaryDto,
+  StampFilters,
 } from "@shared";
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { AuthenticatedLayout } from "@/components/shared/AuthenticatedLayout";
 
 const STATUS_OPTIONS = [
   { value: "", label: "Todos los estados" },
@@ -84,17 +87,19 @@ export default function HistorialSellosPage() {
     setError("");
 
     try {
-      const response = await api.stamps.getHistory({
-        page,
+      const filters: StampFilters = {
+        page: page,
         limit: 10,
         search: searchTerm || undefined,
         status: (statusFilter as StampStatus) || undefined,
         stampType: (typeFilter as StampType) || undefined,
-      });
+      };
 
-      if (response.success && response.data) {
-        setStamps(response.data.data);
-        setTotalPages(response.data.pagination.totalPages);
+      const response = await api.stamps.getHistory(filters);
+      console.log("response", response);
+      if (response.success) {
+        setStamps(response.data?.stamps || []);
+        setTotalPages(response.data?.totalPages || 1);
       } else {
         throw new Error(response.message || "Error al cargar el historial");
       }
@@ -165,231 +170,240 @@ export default function HistorialSellosPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Historial de Sellos
-          </h1>
-          <p className="text-gray-600">
-            Gestiona y revisa todos los códigos generados
-          </p>
-        </div>
+    <ProtectedRoute allowedUserTypes={["admin"]}>
+      <AuthenticatedLayout>
+        <div className="min-h-screen bg-gray-50 p-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Historial de Sellos
+              </h1>
+              <p className="text-gray-600">
+                Gestiona y revisa todos los códigos generados
+              </p>
+            </div>
 
-        {/* Estadísticas */}
-        {statistics && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">
-                {statistics.totalGenerated}
-              </div>
-              <div className="text-sm text-gray-500">Total Generados</div>
-            </Card>
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {statistics.totalUsed}
-              </div>
-              <div className="text-sm text-gray-500">Usados</div>
-            </Card>
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {statistics.totalActive}
-              </div>
-              <div className="text-sm text-gray-500">Activos</div>
-            </Card>
-            <Card className="p-4 text-center">
-              <div className="text-2xl font-bold text-red-600">
-                {statistics.totalExpired}
-              </div>
-              <div className="text-sm text-gray-500">Expirados</div>
-            </Card>
-          </div>
-        )}
-
-        {/* Filtros */}
-        <Card className="p-4 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Input
-              placeholder="Buscar por código..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full"
-            />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              {STATUS_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded-md"
-            >
-              {TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            <Button onClick={fetchStamps} disabled={isLoading}>
-              {isLoading ? "Buscando..." : "Buscar"}
-            </Button>
-          </div>
-        </Card>
-
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            {error}
-          </Alert>
-        )}
-
-        {/* Lista de sellos */}
-        <div className="space-y-4">
-          {stamps.map((stamp) => (
-            <Card key={stamp.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div className="text-center">
-                    <div className="text-2xl font-mono font-bold text-blue-600">
-                      {stamp.code}
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyCode(stamp.code)}
-                      data-code={stamp.code}
-                      className="text-xs"
-                    >
-                      📋
-                    </Button>
+            {/* Estadísticas */}
+            {statistics && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <Card className="p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {statistics.totalGenerated}
                   </div>
+                  <div className="text-sm text-gray-500">Total Generados</div>
+                </Card>
+                <Card className="p-4 text-center">
+                  <div className="text-2xl font-bold text-green-600">
+                    {statistics.totalUsed}
+                  </div>
+                  <div className="text-sm text-gray-500">Usados</div>
+                </Card>
+                <Card className="p-4 text-center">
+                  <div className="text-2xl font-bold text-orange-600">
+                    {statistics.totalActive}
+                  </div>
+                  <div className="text-sm text-gray-500">Activos</div>
+                </Card>
+                <Card className="p-4 text-center">
+                  <div className="text-2xl font-bold text-red-600">
+                    {statistics.totalExpired}
+                  </div>
+                  <div className="text-sm text-gray-500">Expirados</div>
+                </Card>
+              </div>
+            )}
 
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Badge className={getStatusColor(stamp.status)}>
-                        {getStatusIcon(stamp.status)} {stamp.status}
-                      </Badge>
-                      <Badge variant="outline">
-                        {stamp.stampValue} sello
-                        {stamp.stampValue > 1 ? "s" : ""}
-                      </Badge>
+            {/* Filtros */}
+            <Card className="p-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Input
+                  placeholder="Buscar por código..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full"
+                />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  {STATUS_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded-md"
+                >
+                  {TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <Button onClick={fetchStamps} disabled={isLoading}>
+                  {isLoading ? "Buscando..." : "Buscar"}
+                </Button>
+              </div>
+            </Card>
+
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                {error}
+              </Alert>
+            )}
+
+            {/* Lista de sellos */}
+            <div className="space-y-4">
+              {stamps.map((stamp) => (
+                <Card key={stamp.id} className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <div className="text-center">
+                        <div className="text-2xl font-mono font-bold text-blue-600">
+                          {stamp.code}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyCode(stamp.code)}
+                          data-code={stamp.code}
+                          className="text-xs"
+                          title="Copiar código"
+                        >
+                          📋
+                        </Button>
+                      </div>
+
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <Badge className={getStatusColor(stamp.status)}>
+                            {getStatusIcon(stamp.status)} {stamp.status}
+                          </Badge>
+                          <Badge variant="outline">
+                            {stamp.stampValue} sello
+                            {stamp.stampValue > 1 ? "s" : ""}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-1">
+                          {stamp.description}
+                        </p>
+                        <div className="text-xs text-gray-500">
+                          Creado: {formatDate(stamp.createdAt!)}
+                          {stamp.expiresAt && (
+                            <span className="ml-2">
+                              • Expira: {formatDate(stamp.expiresAt)}
+                            </span>
+                          )}
+                          {stamp.usedAt && (
+                            <span className="ml-2">
+                              • Usado: {formatDate(stamp.usedAt)}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-gray-600 mb-1">
-                      {stamp.description}
+
+                    <div className="flex items-center space-x-2">
+                      {stamp.qrCode && (
+                        <img
+                          src={stamp.qrCode}
+                          alt="QR Code"
+                          className="w-12 h-12 border border-gray-200 rounded"
+                        />
+                      )}
+
+                      {stamp.status === StampStatus.ACTIVE && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() =>
+                            handleCancelStamp(stamp.id!.toString())
+                          }
+                        >
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+
+              {stamps.length === 0 && !isLoading && (
+                <Card className="p-8 text-center">
+                  <div className="text-gray-400 mb-4">
+                    <div className="text-6xl mb-2">🎫</div>
+                    <h3 className="text-lg font-semibold">No hay sellos</h3>
+                    <p className="text-sm">
+                      {searchTerm || statusFilter || typeFilter
+                        ? "No se encontraron sellos con los filtros aplicados"
+                        : "Aún no has generado ningún sello"}
                     </p>
-                    <div className="text-xs text-gray-500">
-                      Creado: {formatDate(stamp.createdAt!)}
-                      {stamp.expiresAt && (
-                        <span className="ml-2">
-                          • Expira: {formatDate(stamp.expiresAt)}
-                        </span>
-                      )}
-                      {stamp.usedAt && (
-                        <span className="ml-2">
-                          • Usado: {formatDate(stamp.usedAt)}
-                        </span>
-                      )}
-                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  {stamp.qrCode && (
-                    <img
-                      src={stamp.qrCode}
-                      alt="QR Code"
-                      className="w-12 h-12 border border-gray-200 rounded"
-                    />
-                  )}
-
-                  {stamp.status === StampStatus.ACTIVE && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleCancelStamp(stamp.id!.toString())}
-                    >
-                      Cancelar
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
-
-          {stamps.length === 0 && !isLoading && (
-            <Card className="p-8 text-center">
-              <div className="text-gray-400 mb-4">
-                <div className="text-6xl mb-2">🎫</div>
-                <h3 className="text-lg font-semibold">No hay sellos</h3>
-                <p className="text-sm">
-                  {searchTerm || statusFilter || typeFilter
-                    ? "No se encontraron sellos con los filtros aplicados"
-                    : "Aún no has generado ningún sello"}
-                </p>
-              </div>
-              <Button
-                onClick={() => router.push("/admin/generar-codigo-rapido")}
-                className="mt-4"
-              >
-                Generar Primer Sello
-              </Button>
-            </Card>
-          )}
-        </div>
-
-        {/* Paginación */}
-        {totalPages > 1 && (
-          <div className="flex justify-center space-x-2 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setPage(Math.max(1, page - 1))}
-              disabled={page === 1}
-            >
-              ← Anterior
-            </Button>
-            <div className="flex items-center space-x-2">
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                (pageNum) => (
                   <Button
-                    key={pageNum}
-                    variant={page === pageNum ? "default" : "outline"}
-                    onClick={() => setPage(pageNum)}
-                    size="sm"
+                    onClick={() => router.push("/admin/generar-codigo-rapido")}
+                    className="mt-4"
                   >
-                    {pageNum}
+                    Generar Primer Sello
                   </Button>
-                )
+                </Card>
               )}
             </div>
-            <Button
-              variant="outline"
-              onClick={() => setPage(Math.min(totalPages, page + 1))}
-              disabled={page === totalPages}
-            >
-              Siguiente →
-            </Button>
-          </div>
-        )}
 
-        {/* Botones de navegación */}
-        <div className="flex justify-between mt-8">
-          <Button
-            onClick={() => router.push("/admin/dashboard")}
-            variant="ghost"
-          >
-            ← Dashboard
-          </Button>
-          <Button onClick={() => router.push("/admin/generar-codigo-rapido")}>
-            Generar Nuevo Sello
-          </Button>
+            {/* Paginación */}
+            {totalPages > 1 && (
+              <div className="flex justify-center space-x-2 mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                >
+                  ← Anterior
+                </Button>
+                <div className="flex items-center space-x-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (pageNum) => (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        onClick={() => setPage(pageNum)}
+                        size="sm"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  )}
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                >
+                  Siguiente →
+                </Button>
+              </div>
+            )}
+
+            {/* Botones de navegación */}
+            <div className="flex justify-between mt-8">
+              <Button
+                onClick={() => router.push("/admin/dashboard")}
+                variant="ghost"
+              >
+                ← Dashboard
+              </Button>
+              <Button
+                onClick={() => router.push("/admin/generar-codigo-rapido")}
+              >
+                Generar Nuevo Sello
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </AuthenticatedLayout>
+    </ProtectedRoute>
   );
 }
