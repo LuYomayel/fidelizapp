@@ -12,17 +12,18 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import { api } from "../../lib/api-client";
-import { IClientCard, IStampRedemption, PaginatedResponse } from "@shared";
+import { IClientCard } from "@shared";
 import { ProtectedRoute } from "../../components/shared/ProtectedRoute";
 import { AuthenticatedLayout } from "../../components/shared/AuthenticatedLayout";
+import ClientRewardsList from "@/components/cliente/ClientRewardsList";
+import ClientRedemptionHistory from "@/components/cliente/ClientRedemptionHistory";
+import ClientGeneralHistory from "@/components/cliente/ClientGeneralHistory";
 
 export default function MiTarjetaPage() {
   const router = useRouter();
   const [clientCards, setClientCards] = useState<IClientCard[]>([]);
   const [selectedCard, setSelectedCard] = useState<IClientCard | null>(null);
-  const [history, setHistory] = useState<IStampRedemption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -52,30 +53,8 @@ export default function MiTarjetaPage() {
     }
   };
 
-  const loadCardHistory = async (businessId: string) => {
-    setIsHistoryLoading(true);
-
-    try {
-      const response = await api.clientCards.getHistory(businessId);
-
-      if (response.success && response.data) {
-        setHistory(response.data); // El backend retorna directamente el array
-      } else {
-        throw new Error(response.message || "Error al cargar el historial");
-      }
-    } catch (err) {
-      console.error("Error cargando historial:", err);
-      setHistory([]);
-    } finally {
-      setIsHistoryLoading(false);
-    }
-  };
-
   const handleCardSelect = (card: IClientCard) => {
     setSelectedCard(card);
-    if (card.businessId) {
-      loadCardHistory(card.businessId.toString());
-    }
   };
 
   const formatDate = (date: string | Date) => {
@@ -169,19 +148,30 @@ export default function MiTarjetaPage() {
       <AuthenticatedLayout>
         <div className="p-4">
           <div className="max-w-6xl mx-auto">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Mis Tarjetas de Fidelización
-              </h1>
-              <p className="text-gray-600">
-                Gestiona tus sellos y recompensas en todos los negocios
-              </p>
+            <div className="flex flex-col md:flex-row justify-between items-center mb-2">
+              <div className="">
+                <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                  Mis Tarjetas de Fidelización
+                </h1>
+                <p className="text-gray-600">
+                  Gestiona tus sellos y recompensas en todos los negocios
+                </p>
+              </div>
+              <div className="flex justify-center md:justify-end items-center align-items-center space-x-4">
+                <Button
+                  onClick={() => router.push("/cliente/canjear-codigo")}
+                  size="lg"
+                >
+                  Canjear Código
+                </Button>
+              </div>
             </div>
 
             <Tabs defaultValue="cards" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="cards">🎫 Mis Tarjetas</TabsTrigger>
-                <TabsTrigger value="history">📜 Historial</TabsTrigger>
+                {/*<TabsTrigger value="history">📜 Historial</TabsTrigger>*/}
+                <TabsTrigger value="general">📊 General</TabsTrigger>
                 <TabsTrigger value="rewards">🎁 Recompensas</TabsTrigger>
               </TabsList>
 
@@ -190,7 +180,7 @@ export default function MiTarjetaPage() {
                   {clientCards.map((card) => (
                     <Card
                       key={card.id}
-                      className={`relative overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+                      className={`relative overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 p-1 ${
                         selectedCard?.id === card.id
                           ? "ring-2 ring-blue-500 shadow-lg"
                           : "hover:ring-2 hover:ring-blue-200"
@@ -249,6 +239,9 @@ export default function MiTarjetaPage() {
                           <div>
                             <h3 className="font-bold text-lg text-gray-900">
                               {card.business?.businessName || "Negocio"}
+                              <p className="text-xs italic mt-0 pt-0">
+                                {card.business?.type || "N"}
+                              </p>
                             </h3>
                             <div className="flex items-center space-x-1">
                               <span className="text-sm text-gray-600">
@@ -336,93 +329,29 @@ export default function MiTarjetaPage() {
                 </div>
               </TabsContent>
 
+              {/*
               <TabsContent value="history" className="mt-6">
-                <div className="space-y-4">
-                  {selectedCard && (
-                    <Card className="p-4">
-                      <h3 className="font-semibold mb-4">
-                        Historial de{" "}
-                        {selectedCard.business?.businessName || "Negocio"}
-                      </h3>
+                {selectedCard ? (
+                  <ClientRedemptionHistory
+                    businessId={selectedCard.businessId?.toString()}
+                    businessName={selectedCard.business?.businessName}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    Selecciona una tarjeta para ver su historial
+                  </div>
+                )}
+              </TabsContent>
+              */}
 
-                      {isHistoryLoading ? (
-                        <div className="text-center py-8">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                          <p className="text-gray-600">Cargando historial...</p>
-                        </div>
-                      ) : history.length > 0 ? (
-                        <div className="space-y-3">
-                          {history.map((redemption) => (
-                            <div
-                              key={redemption.id}
-                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                            >
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                  <span className="text-green-600 font-bold">
-                                    +{redemption.stamp?.stampValue || 1}
-                                  </span>
-                                </div>
-                                <div>
-                                  <p className="font-medium">
-                                    {redemption.stamp?.description}
-                                  </p>
-                                  <p className="text-sm text-gray-500">
-                                    Código: {redemption.stamp?.code}
-                                  </p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm text-gray-500">
-                                  {formatDate(redemption.redeemedAt)}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          No hay historial para este negocio
-                        </div>
-                      )}
-                    </Card>
-                  )}
-                </div>
+              <TabsContent value="general" className="mt-6">
+                <ClientGeneralHistory />
               </TabsContent>
 
               <TabsContent value="rewards" className="mt-6">
-                <div className="text-center py-12">
-                  <div className="text-6xl mb-4">🎁</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                    Recompensas Disponibles
-                  </h3>
-                  <p className="text-gray-600 mb-6">
-                    Funcionalidad próximamente disponible
-                  </p>
-                  <Button
-                    onClick={() => router.push("/cliente/canjear-codigo")}
-                  >
-                    Canjear Más Códigos
-                  </Button>
-                </div>
+                <ClientRewardsList />
               </TabsContent>
             </Tabs>
-
-            <div className="mt-8 flex justify-center space-x-4">
-              <Button
-                onClick={() => router.push("/cliente/canjear-codigo")}
-                size="lg"
-              >
-                Canjear Código
-              </Button>
-              <Button
-                onClick={() => router.push("/")}
-                variant="outline"
-                size="lg"
-              >
-                Inicio
-              </Button>
-            </div>
           </div>
         </div>
       </AuthenticatedLayout>

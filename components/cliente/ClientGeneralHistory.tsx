@@ -5,17 +5,13 @@ import { Badge } from "../ui/badge";
 import { api } from "../../lib/api-client";
 import { IRedemptionFilters, IStampRedemption, StampType } from "@shared";
 
-interface ClientRedemptionHistoryProps {
-  businessId?: string;
-  businessName?: string;
+interface ClientGeneralHistoryProps {
   className?: string;
 }
 
-export default function ClientRedemptionHistory({
-  businessId,
-  businessName,
+export default function ClientGeneralHistory({
   className = "",
-}: ClientRedemptionHistoryProps) {
+}: ClientGeneralHistoryProps) {
   const [history, setHistory] = useState<IStampRedemption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -26,7 +22,7 @@ export default function ClientRedemptionHistory({
 
   useEffect(() => {
     loadHistory();
-  }, [businessId, currentPage]);
+  }, [currentPage]);
 
   const loadHistory = async () => {
     setIsLoading(true);
@@ -68,12 +64,6 @@ export default function ClientRedemptionHistory({
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-  };
-
-  const getBusinessName = (redemption: IStampRedemption) => {
-    return (
-      redemption.stamp?.business?.businessName || businessName || "Negocio"
-    );
   };
 
   const renderPagination = () => {
@@ -204,7 +194,7 @@ export default function ClientRedemptionHistory({
               {redemption.stamp?.description || "Canje de sello"}
             </h4>
             <Badge variant="secondary" className="text-xs">
-              {getBusinessName(redemption)}
+              {redemption.stamp?.business?.businessName || "Negocio"}
             </Badge>
           </div>
 
@@ -232,20 +222,16 @@ export default function ClientRedemptionHistory({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-900">
-            Historial de Canjes
+            Historial General de Canjes
           </h3>
-          {businessName && (
-            <p className="text-gray-600 mt-1">
-              {businessName} • {totalItems} canjes totales
-            </p>
-          )}
+          <p className="text-gray-600 mt-1">
+            Todos los negocios • {totalItems} canjes totales
+          </p>
         </div>
 
-        {!businessName && (
-          <Badge variant="outline" className="text-sm">
-            Todos los negocios
-          </Badge>
-        )}
+        <Badge variant="outline" className="text-sm">
+          Todos los negocios
+        </Badge>
       </div>
 
       {/* Estado de carga */}
@@ -307,9 +293,7 @@ export default function ClientRedemptionHistory({
                 No hay canjes registrados
               </h4>
               <p className="text-gray-600">
-                {businessName
-                  ? `Aún no has canjeado códigos en ${businessName}`
-                  : "Aún no has canjeado códigos en ningún negocio"}
+                Aún no has canjeado códigos en ningún negocio
               </p>
             </div>
           )}

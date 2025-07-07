@@ -391,8 +391,31 @@ export const api = {
     getByBusiness: (businessId: string) =>
       apiClient.get<IClientCard>(`/client-cards/${businessId}`),
 
-    // Obtener historial de canjes por negocio
-    getHistory: (businessId: string) =>
+    // Obtener historial de canjes general
+    getHistory: (filters: IRedemptionFilters) => {
+      const queryParams = new URLSearchParams();
+
+      if (filters.page) queryParams.append("page", filters.page.toString());
+      if (filters.limit) queryParams.append("limit", filters.limit.toString());
+      if (filters.status) queryParams.append("status", filters.status);
+      if (filters.dateFrom)
+        queryParams.append("dateFrom", filters.dateFrom.toISOString());
+      if (filters.dateTo)
+        queryParams.append("dateTo", filters.dateTo.toISOString());
+      if (filters.clientId)
+        queryParams.append("clientId", filters.clientId.toString());
+      if (filters.rewardId)
+        queryParams.append("rewardId", filters.rewardId.toString());
+
+      const queryString = queryParams.toString();
+      return apiClient.get<{
+        redemptions: IStampRedemption[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>(`/client-cards/history${queryString ? `?${queryString}` : ""}`);
+    },
+    getHistoryByBusiness: (businessId: string) =>
       apiClient.get<IStampRedemption[]>(`/client-cards/${businessId}/history`),
 
     // Obtener estadísticas de tarjetas del cliente
