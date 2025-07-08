@@ -31,6 +31,12 @@ import {
   IReward,
   IRewardRedemption,
   IRewardStatistics,
+  // Nuevas interfaces para configuración modular
+  IStampConfig,
+  ICreateStampConfigDto,
+  IUpdateStampConfigDto,
+  IGenerateStampFromConfigDto,
+  IQuickStampGenerationDto,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -348,6 +354,35 @@ export const api = {
       { data, logo }: { data: UpdateBusinessDto; logo: File }
     ) => apiClient.put(`/business/${id}`, data, logo as any),
     delete: (id: string) => apiClient.delete(`/business?id=${id}`),
+  },
+  business: {
+    // Configuraciones de sellos
+    getStampConfigs: () =>
+      apiClient.get<IStampConfig[]>("/business/stamp-configs"),
+    getQuickActions: () =>
+      apiClient.get<IStampConfig[]>("/business/stamp-configs/quick-actions"),
+    getStampConfig: (id: number) =>
+      apiClient.get<IStampConfig>(`/business/stamp-configs/${id}`),
+    createStampConfig: (data: ICreateStampConfigDto) =>
+      apiClient.post<IStampConfig>("/business/stamp-configs", data),
+    updateStampConfig: (id: number, data: IUpdateStampConfigDto) =>
+      apiClient.put<IStampConfig>(`/business/stamp-configs/${id}`, data),
+    deleteStampConfig: (id: number) =>
+      apiClient.delete(`/business/stamp-configs/${id}`),
+    toggleStampConfigActive: (id: number) =>
+      apiClient.put<IStampConfig>(
+        `/business/stamp-configs/${id}/toggle-active`
+      ),
+    toggleStampConfigQuickAction: (id: number) =>
+      apiClient.put<IStampConfig>(
+        `/business/stamp-configs/${id}/toggle-quick-action`
+      ),
+
+    // Generación de códigos con configuración
+    generateStampFromConfig: (data: IGenerateStampFromConfigDto) =>
+      apiClient.post<IStamp>("/business/stamps/from-config", data),
+    quickStampGeneration: (data: IQuickStampGenerationDto) =>
+      apiClient.post<IStamp>("/business/stamps/quick-config", data),
   },
   stamps: {
     generateQuick: (saleValue: number) =>
