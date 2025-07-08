@@ -118,13 +118,10 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       const qr = new Html5Qrcode("qr-reader");
       html5QrCodeRef.current = qr;
 
-      // Configuración mejorada para el escáner
-      const config = {
-        fps: 10,
-        qrbox: { width: 250, height: 250 },
-        aspectRatio: 1.0,
-        ...(id ? { deviceId: { exact: id } } : { facingMode: "environment" }),
-      };
+      // Configuración combinada pero con solo una clave para la cámara
+      const config = id
+        ? { deviceId: { exact: id } }
+        : { facingMode: "environment" };
 
       addDebugLog(`Configuración del escáner: ${JSON.stringify(config)}`);
 
