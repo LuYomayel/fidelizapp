@@ -24,9 +24,16 @@ export default function CanjearCodigoPage() {
     message: string;
   } | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, scannedCode?: string) => {
     e.preventDefault();
-    if (!codigo.trim()) return;
+
+    if (!scannedCode) {
+      setResultado({
+        success: false,
+        message: "No se ha escaneado ningún código",
+      });
+      return;
+    }
 
     setIsLoading(true);
     setResultado(null);
@@ -34,7 +41,7 @@ export default function CanjearCodigoPage() {
     // Simular llamada a API
     try {
       const response = await api.clientCards.redeem({
-        code: codigo,
+        code: scannedCode,
       });
       console.log("response", response);
       if (response.success) {
@@ -72,7 +79,7 @@ export default function CanjearCodigoPage() {
     setIsScannerOpen(false);
     // Automáticamente procesar el código escaneado
     setTimeout(() => {
-      handleSubmit(new Event("submit") as any);
+      handleSubmit(new Event("submit") as any, scannedCode);
     }, 100);
   };
 
