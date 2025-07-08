@@ -67,6 +67,7 @@ export default function CanjearCodigoPage() {
   };
 
   const handleQRScan = (scannedCode: string) => {
+    console.log("scannedCode", scannedCode);
     setCodigo(scannedCode);
     setIsScannerOpen(false);
     // Automáticamente procesar el código escaneado

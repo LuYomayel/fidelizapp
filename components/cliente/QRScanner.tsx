@@ -20,6 +20,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const [hasPermission, setHasPermission] = useState<boolean>(false);
   const [showCameraSelect, setShowCameraSelect] = useState(false);
   const [debugInfo, setDebugInfo] = useState<string>("");
+  const [lastScanned, setLastScanned] = useState<string | null>(null); // NUEVO
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null);
 
   // Función para agregar logs de debug
@@ -97,6 +98,8 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   // Guardar permiso si se escanea correctamente
   const handleScanSuccess = (decodedText: string, decodedResult: any) => {
     addDebugLog(`QR detectado: ${decodedText}`);
+    addDebugLog(`Deteniendo escáner por éxito`);
+    setLastScanned(decodedText); // Guardar último QR
     localStorage.setItem(CAMERA_PERMISSION_KEY, "granted");
     setHasPermission(true);
     onScan(decodedText);
@@ -118,25 +121,75 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       const qr = new Html5Qrcode("qr-reader");
       html5QrCodeRef.current = qr;
 
-      // Configuración combinada pero con solo una clave para la cámara
       const config = id
         ? { deviceId: { exact: id } }
         : { facingMode: "environment" };
 
       addDebugLog(`Configuración del escáner: ${JSON.stringify(config)}`);
 
-      await qr.start(config, handleScanSuccess, (err: any) => {
-        addDebugLog(`Error de escaneo: ${err}`);
-        if (
-          err &&
-          typeof err === "string" &&
-          err.toLowerCase().includes("permission")
-        ) {
-          setError(
-            "Acceso a la cámara denegado. Por favor, permite el acceso a la cámara."
-          );
+      // Función para manejar QR detectado (viene del callback de éxito o error)
+      const handleQRDetected = (decodedText: string, source: string) => {
+        addDebugLog(`QR detectado desde ${source}: ${decodedText}`);
+
+        // Validar que es un código QR válido (no un error real)
+        if (typeof decodedText === "string" && decodedText.trim().length > 0) {
+          // Evitar procesamiento duplicado
+          if (lastScanned === decodedText) {
+            addDebugLog("Ignorando QR duplicado");
+            return;
+          }
+
+          setLastScanned(decodedText);
+          addDebugLog(`Procesando QR: ${decodedText}`);
+          handleScanSuccess(decodedText, null);
         }
-      });
+      };
+
+      await qr.start(
+        config,
+        (decodedText: string, decodedResult: any) => {
+          handleQRDetected(decodedText, "callback de éxito");
+        },
+        (err: any) => {
+          addDebugLog(`Callback de error: ${JSON.stringify(err)}`);
+
+          // Si el "error" es en realidad un string (código QR), procesarlo
+          if (typeof err === "string" && err.trim().length > 0) {
+            // Verificar si parece un código QR válido (no un mensaje de error real)
+            if (
+              !err.toLowerCase().includes("permission") &&
+              !err.toLowerCase().includes("not found") &&
+              !err.toLowerCase().includes("failed") &&
+              !err.toLowerCase().includes("error") &&
+              !err.toLowerCase().includes("denied")
+            ) {
+              addDebugLog("El 'error' parece ser un código QR válido");
+              handleQRDetected(err, "callback de error");
+              return;
+            }
+          }
+
+          // Si llegamos aquí, es un error real
+          if (
+            err &&
+            typeof err === "string" &&
+            err.toLowerCase().includes("permission")
+          ) {
+            setError(
+              "Acceso a la cámara denegado. Por favor, permite el acceso a la cámara."
+            );
+          } else if (
+            err &&
+            typeof err === "string" &&
+            (err.toLowerCase().includes("not found") ||
+              err.toLowerCase().includes("failed") ||
+              err.toLowerCase().includes("error"))
+          ) {
+            setError("Error de escaneo: " + err);
+          }
+          // No setear error para otros casos (intentos fallidos normales)
+        }
+      );
 
       addDebugLog("Escáner iniciado correctamente");
       setIsScanning(true);
@@ -289,10 +342,11 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
         >
           <div
             id="qr-reader"
-            className="w-full min-h-[260px] rounded-lg border border-blue-100 bg-blue-50 flex items-center justify-center"
+            className="w-full min-h-[260px] rounded-lg border border-blue-100 bg-blue-50 flex items-center justify-center relative"
           >
-            {isScanning && !loading && !error && (
-              <div className="text-center text-gray-500">
+            {/* Solo mostrar el icono y texto si NO está escaneando (no hay video activo) y no está cargando ni hay error */}
+            {!isScanning && !loading && !error && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <Camera className="w-12 h-12 mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Escaneando...</p>
               </div>
