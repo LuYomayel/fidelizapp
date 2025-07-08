@@ -19,7 +19,7 @@ export default function Navigation({
 
   const getUserDisplayName = () => {
     if (userType === "client") {
-      return user?.firstName + " " + user?.lastName;
+      return user?.username;
     } else {
       return user?.businessName;
     }

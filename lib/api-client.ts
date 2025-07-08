@@ -321,6 +321,21 @@ export const api = {
       apiClient.post("/clients/register", data),
     login: (data: LoginClientDto) => apiClient.post("/clients/login", data),
     delete: (id: string) => apiClient.delete(`/clients?id=${id}`),
+
+    // Verificación de email
+    verifyEmail: (data: { email: string; code: string }) =>
+      apiClient.post("/clients/verify-email", data),
+    resendVerification: (data: { email: string }) =>
+      apiClient.post("/clients/resend-verification", data),
+
+    // Recuperación de contraseña
+    forgotPassword: (data: { email: string }) =>
+      apiClient.post("/clients/forgot-password", data),
+    resetPassword: (data: {
+      email: string;
+      code: string;
+      newPassword: string;
+    }) => apiClient.post("/clients/reset-password", data),
   },
   businesses: {
     get: (id: string) => apiClient.get(`/business/${id}`),
@@ -555,6 +570,15 @@ export const api = {
         `/rewards/redemptions/my-history${queryString ? `?${queryString}` : ""}`
       );
     },
+
+    // Obtener historial de reclamos del cliente (versión simple)
+    getMyRedemptionHistory: () =>
+      apiClient.get<{
+        redemptions: IRewardRedemption[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>("/rewards/redemptions/my-history"),
 
     // Obtener estadísticas de recompensas
     getStatistics: () =>

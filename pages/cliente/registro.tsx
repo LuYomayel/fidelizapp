@@ -75,12 +75,29 @@ export default function ClienteRegistro() {
         ...formData,
         password: formData.email,
       };
-      const response = await api.clients.register(createClientDto);
+      const response = (await api.clients.register(createClientDto)) as {
+        success: boolean;
+        message: string;
+        data?: {
+          client: any;
+          requiresVerification: boolean;
+        };
+      };
+
       if (response.success) {
-        setRegistroExitoso(true);
-        setTimeout(() => {
-          router.push("/cliente/login");
-        }, 3000);
+        if (response.data?.requiresVerification) {
+          // Redirigir a verificación de email
+          router.push(
+            `/cliente/verificar-email?email=${encodeURIComponent(
+              formData.email
+            )}`
+          );
+        } else {
+          setRegistroExitoso(true);
+          setTimeout(() => {
+            router.push("/cliente/login");
+          }, 3000);
+        }
       } else {
         console.log(response);
         setErrors({ email: response.message });

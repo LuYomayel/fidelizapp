@@ -2,7 +2,7 @@ import { useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { LogIn, ArrowLeft, Loader2 } from "lucide-react";
+import { LogIn, ArrowLeft, Loader2, AlertCircle, Mail } from "lucide-react";
 
 // Importar utilidades y tipos
 import { validarEmail } from "@/utils";
@@ -25,17 +25,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import PublicRoute from "@/components/shared/PublicRoute";
 
-// TODO: Importar contexto de cliente cuando esté listo
-// import { useCliente } from '@/contexts/ClienteContext';
-
-// Datos mock para desarrollo
-// import { buscarClientePorDNI, simularRespuestaAPI } from "@/data/mock";
-
 export default function ClienteLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showVerificationAlert, setShowVerificationAlert] = useState(false);
+  const [verificationEmail, setVerificationEmail] = useState("");
   const { login } = useAuth();
 
   const router = useRouter();
@@ -60,8 +56,10 @@ export default function ClienteLogin() {
 
     setIsLoading(true);
     setError("");
+    setShowVerificationAlert(false);
 
     try {
+      console.log("email", email);
       const loginClientDto: LoginClientDto = {
         email,
         password,
@@ -70,7 +68,11 @@ export default function ClienteLogin() {
         success: boolean;
         message: string;
         data: { token: string; client: any; tokens: any };
+        requiresVerification?: boolean;
+        email?: string;
       };
+      //console.log("response", response);
+      //
       if (response.success) {
         // Usar el AuthContext para manejar la autenticación
         login({
@@ -81,13 +83,24 @@ export default function ClienteLogin() {
 
         router.push("/cliente/mi-tarjeta");
       } else {
+        if (response.requiresVerification) {
+          setShowVerificationAlert(true);
+          setVerificationEmail(response.email || email);
+        }
         setError(response.message || "Error al iniciar sesión");
       }
     } catch (error: any) {
+      console.log("error", error);
       setError(error.message || "Error al iniciar sesión");
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleGoToVerification = () => {
+    router.push(
+      `/cliente/verificar-email?email=${encodeURIComponent(verificationEmail)}`
+    );
   };
 
   return (
@@ -163,11 +176,41 @@ export default function ClienteLogin() {
                     placeholder="Tu contraseña"
                     required
                   />
+                  <div className="text-right mt-1">
+                    <Link
+                      href="/cliente/recuperar-password"
+                      className="text-sm text-blue-600 hover:text-blue-500"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </Link>
+                  </div>
                 </div>
 
+                {/* Alerta de verificación de email */}
+                {showVerificationAlert && (
+                  <Alert>
+                    <Mail className="w-4 h-4" />
+                    <AlertDescription>
+                      <div className="space-y-2">
+                        <p>Debes verificar tu email antes de iniciar sesión.</p>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGoToVerification}
+                          className="w-full"
+                        >
+                          Verificar Email
+                        </Button>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Error */}
-                {error && (
+                {error && !showVerificationAlert && (
                   <Alert variant="destructive">
+                    <AlertCircle className="w-4 h-4" />
                     <AlertDescription>{error}</AlertDescription>
                   </Alert>
                 )}
@@ -181,7 +224,7 @@ export default function ClienteLogin() {
                   >
                     {isLoading ? (
                       <div className="flex items-center justify-center">
-                        <Loader2 className="w-5 h-5 mr-2" />
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                         Iniciando sesión...
                       </div>
                     ) : (

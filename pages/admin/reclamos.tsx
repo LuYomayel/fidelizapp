@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -21,16 +14,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
   Gift,
   Clock,
   CheckCircle,
@@ -38,10 +21,8 @@ import {
   Timer,
   User,
   Package,
-  QrCode,
   AlertTriangle,
   Calendar,
-  Filter,
   RefreshCw,
 } from "lucide-react";
 import { AuthenticatedLayout } from "@/components/shared/AuthenticatedLayout";
@@ -55,7 +36,6 @@ import {
 } from "@shared";
 
 export default function ReclamosPage() {
-  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [dashboard, setDashboard] = useState<IRedemptionDashboard | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
