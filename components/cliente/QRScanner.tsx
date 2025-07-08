@@ -85,7 +85,6 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
       }
       const qr = new Html5Qrcode("qr-reader");
       html5QrCodeRef.current = qr;
-      // @ts-ignore: deviceId y facingMode son soportados por la librería pero no están en los tipos locales
       await qr.start(
         id ? { deviceId: { exact: id } } : { facingMode: "environment" },
         handleScanSuccess,

@@ -26,15 +26,19 @@ declare module "html5-qrcode" {
     constructor(elementId: string);
 
     start(
-      config: {
-        fps?: number;
-        qrbox?: {
-          width: number;
-          height: number;
-        };
-        aspectRatio?: number;
-        supportedScanTypes?: any[];
-      },
+      cameraIdOrConfig:
+        | string
+        | {
+            deviceId?: { exact: string };
+            facingMode?: string;
+            fps?: number;
+            qrbox?: {
+              width: number;
+              height: number;
+            };
+            aspectRatio?: number;
+            supportedScanTypes?: any[];
+          },
       onScanSuccess: (decodedText: string, decodedResult: any) => void,
       onScanError: (error: any) => void
     ): Promise<void>;
