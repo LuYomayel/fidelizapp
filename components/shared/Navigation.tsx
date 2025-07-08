@@ -1,6 +1,14 @@
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../ui/button";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+import { useRouter } from "next/router";
 
 interface NavigationProps {
   title?: string;
@@ -12,6 +20,7 @@ export default function Navigation({
   showLogout = true,
 }: NavigationProps) {
   const { user, userType, logout } = useAuth();
+  const router = useRouter();
 
   const handleLogout = () => {
     logout();
@@ -60,15 +69,53 @@ export default function Navigation({
                   </span>
                 )}
               </div>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                size="sm"
-                className="flex items-center space-x-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Cerrar Sesión</span>
-              </Button>
+
+              {/* Menú desplegable de usuario */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <Settings className="w-4 h-4" />
+                    <span>Configuración</span>
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {userType === "admin" ? (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => router.push("/admin/perfil")}
+                      >
+                        <User className="w-4 h-4 mr-2" />
+                        Perfil del Negocio
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          router.push("/admin/configuracion-codigos")
+                        }
+                      >
+                        <Settings className="w-4 h-4 mr-2" />
+                        Configuración de Códigos
+                      </DropdownMenuItem>
+                    </>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() => router.push("/cliente/perfil")}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Mi Perfil
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           )}
         </div>

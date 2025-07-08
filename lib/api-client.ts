@@ -37,6 +37,15 @@ import {
   IUpdateStampConfigDto,
   IGenerateStampFromConfigDto,
   IQuickStampGenerationDto,
+  // Nuevas interfaces para perfiles de usuario
+  IBusinessProfile,
+  IUpdateBusinessProfileDto,
+  IChangePasswordDto,
+  IBusinessQRData,
+  IBusinessSettings,
+  IClientProfile,
+  IUpdateClientProfileDto,
+  IClientSettings,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -342,6 +351,26 @@ export const api = {
       code: string;
       newPassword: string;
     }) => apiClient.post("/clients/reset-password", data),
+
+    // Profile endpoints
+    getProfile: () => apiClient.get<IClientProfile>("/clients/profile"),
+    updateProfile: (data: IUpdateClientProfileDto) =>
+      apiClient.put<IClientProfile>("/clients/profile", data),
+    updateProfilePicture: (profilePictureFile: File) => {
+      const formData = new FormData();
+      formData.append("profilePicture", profilePictureFile);
+      return apiClient.put<IClientProfile>(
+        "/clients/profile/profile-picture",
+        formData
+      );
+    },
+    changePassword: (data: IChangePasswordDto) =>
+      apiClient.post<void>("/clients/profile/change-password", data),
+    getSettings: () =>
+      apiClient.get<IClientSettings>("/clients/profile/settings"),
+    updateSettings: (data: IClientSettings) =>
+      apiClient.put<IClientSettings>("/clients/profile/settings", data),
+    getStatistics: () => apiClient.get<any>("/clients/profile/statistics"),
   },
   businesses: {
     get: (id: string) => apiClient.get(`/business/${id}`),
@@ -383,6 +412,27 @@ export const api = {
       apiClient.post<IStamp>("/business/stamps/from-config", data),
     quickStampGeneration: (data: IQuickStampGenerationDto) =>
       apiClient.post<IStamp>("/business/stamps/quick-config", data),
+
+    // Profile endpoints
+    getProfile: () => apiClient.get<IBusinessProfile>("/business/profile"),
+    updateProfile: (data: IUpdateBusinessProfileDto) =>
+      apiClient.put<IBusinessProfile>("/business/profile", data),
+    updateLogo: (logoFile: File) => {
+      const formData = new FormData();
+      formData.append("logo", logoFile);
+      return apiClient.put<IBusinessProfile>(
+        "/business/profile/logo",
+        formData
+      );
+    },
+    changePassword: (data: IChangePasswordDto) =>
+      apiClient.post<void>("/business/profile/change-password", data),
+    generateQR: () =>
+      apiClient.post<IBusinessQRData>("/business/profile/generate-qr"),
+    getSettings: () =>
+      apiClient.get<IBusinessSettings>("/business/profile/settings"),
+    updateSettings: (data: IBusinessSettings) =>
+      apiClient.put<IBusinessSettings>("/business/profile/settings", data),
   },
   stamps: {
     generateQuick: (saleValue: number) =>
