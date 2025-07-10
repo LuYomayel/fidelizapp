@@ -354,6 +354,14 @@ export default function AdminDashboard() {
                     <Plus className="w-4 h-4 mr-2" />
                     Nuevo Cliente
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => router.push("/admin/qr-negocio")}
+                  >
+                    <QrCode className="w-4 h-4 mr-2" />
+                    Código QR del Negocio
+                  </Button>
                   <Button variant="outline" className="w-full justify-start">
                     <BarChart3 className="w-4 h-4 mr-2" />
                     Ver Reportes

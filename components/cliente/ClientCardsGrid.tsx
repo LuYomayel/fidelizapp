@@ -163,7 +163,7 @@ export default function ClientCardsGrid({
                     <div className="w-16 h-16 bg-gradient-to-br from-gray-400 to-gray-600 rounded-lg flex items-center justify-center overflow-hidden">
                       {card.business?.logoPath ? (
                         <img
-                          src={card.business.logoPath}
+                          src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${card.business.logoPath}`}
                           alt={card.business.businessName}
                           className="w-full h-full object-cover"
                         />

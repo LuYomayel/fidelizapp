@@ -36,8 +36,8 @@ export default function MiTarjetaPage() {
       const response = await api.clientCards.getAll();
 
       if (response.success && response.data) {
-        console.log("response.data", response.data);
         setClientCards(response.data);
+        console.log("response.data", response.data);
         if (response.data.length > 0) {
           setSelectedCard(response.data[0]);
         }

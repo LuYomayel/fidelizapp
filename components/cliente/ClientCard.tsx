@@ -15,6 +15,7 @@ export default function ClientCard({
   onCardSelect,
   showSelectionIndicator = true,
 }: ClientCardProps) {
+  console.log(card.business?.logoPath);
   const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString("es-ES", {
       day: "2-digit",
@@ -74,7 +75,15 @@ export default function ClientCard({
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
             <span className="text-white font-bold text-lg">
-              {card.business?.businessName?.charAt(0) || "N"}
+              {card.business?.logoPath ? (
+                <img
+                  src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${card.business.logoPath}`}
+                  alt={card.business?.businessName || "Negocio"}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                card.business?.businessName?.charAt(0) || "N"
+              )}
             </span>
           </div>
           <div>

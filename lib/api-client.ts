@@ -79,6 +79,7 @@ async function fetchAPI<T = unknown>(
 
   // Construir headers base - SIEMPRE definidos
   const isFormData = options.body instanceof FormData;
+
   const baseHeaders = {
     ...(isFormData ? {} : { "Content-Type": "application/json" }),
     ...(token && { Authorization: `Bearer ${token}` }),
@@ -424,16 +425,23 @@ export const api = {
       apiClient.post<IStamp>("/business/stamps/quick-config", data),
 
     // Profile endpoints
-    getProfile: () => apiClient.get<IBusinessProfile>("/business/profile"),
+    getProfile: () =>
+      apiClient.get<IBusinessProfile>("/business/profile/complete"),
     updateProfile: (data: IUpdateBusinessProfileDto) =>
-      apiClient.put<IBusinessProfile>("/business/profile", data),
-    updateLogo: (logoFile: File) => {
-      const formData = new FormData();
-      formData.append("logo", logoFile);
-      return apiClient.put<IBusinessProfile>(
-        "/business/profile/logo",
-        formData
+      apiClient.put<IBusinessProfile>("/business/profile/update", data),
+    updateLogo: (formData: FormData) => {
+      console.log("Enviando FormData al endpoint /business/profile/logo");
+      console.log("FormData:", formData);
+      console.log(
+        "FormData instanceof FormData:",
+        formData instanceof FormData
       );
+
+      // Usar fetch directamente para FormData
+      return fetchAPI<IBusinessProfile>("/business/profile/logo", {
+        method: "PUT",
+        body: formData,
+      });
     },
     changePassword: (data: IChangePasswordDto) =>
       apiClient.post<void>("/business/profile/change-password", data),

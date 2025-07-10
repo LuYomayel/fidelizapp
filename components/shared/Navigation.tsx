@@ -1,6 +1,6 @@
 import { useAuth } from "../../contexts/AuthContext";
 import { Button } from "../ui/button";
-import { LogOut, User, Settings, ChevronDown } from "lucide-react";
+import { LogOut, User, Settings, ChevronDown, QrCode } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,6 +91,12 @@ export default function Navigation({
                       >
                         <User className="w-4 h-4 mr-2" />
                         Perfil del Negocio
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => router.push("/admin/qr-negocio")}
+                      >
+                        <QrCode className="w-4 h-4 mr-2" />
+                        Código QR del Negocio
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>

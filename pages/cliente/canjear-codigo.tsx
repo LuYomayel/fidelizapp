@@ -27,7 +27,7 @@ export default function CanjearCodigoPage() {
   const handleSubmit = async (e: React.FormEvent, scannedCode?: string) => {
     e.preventDefault();
 
-    if (!scannedCode) {
+    if (!scannedCode && !codigo.trim()) {
       setResultado({
         success: false,
         message: "No se ha escaneado ningún código",
@@ -41,7 +41,7 @@ export default function CanjearCodigoPage() {
     // Simular llamada a API
     try {
       const response = await api.clientCards.redeem({
-        code: scannedCode,
+        code: scannedCode || codigo,
       });
       console.log("response", response);
       if (response.success) {
