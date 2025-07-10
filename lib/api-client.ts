@@ -46,6 +46,7 @@ import {
   IClientProfile,
   IUpdateClientProfileDto,
   IClientSettings,
+  IChangePasswordWithoutCurrentDto,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -353,7 +354,8 @@ export const api = {
     }) => apiClient.post("/clients/reset-password", data),
 
     // Profile endpoints
-    getProfile: () => apiClient.get<IClientProfile>("/clients/profile"),
+    getProfile: () =>
+      apiClient.get<IClientProfile>("/clients/profile/complete"),
     updateProfile: (data: IUpdateClientProfileDto) =>
       apiClient.put<IClientProfile>("/clients/profile", data),
     updateProfilePicture: (profilePictureFile: File) => {
@@ -365,7 +367,15 @@ export const api = {
       );
     },
     changePassword: (data: IChangePasswordDto) =>
-      apiClient.post<void>("/clients/profile/change-password", data),
+      apiClient.post<{ message: string }>(
+        "/clients/profile/change-password",
+        data
+      ),
+    changePasswordWithoutCurrent: (data: IChangePasswordWithoutCurrentDto) =>
+      apiClient.post<void>(
+        "/clients/profile/reset-password-without-current",
+        data
+      ),
     getSettings: () =>
       apiClient.get<IClientSettings>("/clients/profile/settings"),
     updateSettings: (data: IClientSettings) =>

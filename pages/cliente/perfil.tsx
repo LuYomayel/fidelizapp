@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,8 +18,76 @@ import {
   Shield,
   Palette,
 } from "lucide-react";
+import { IChangePasswordDto, IClientProfile } from "@shared";
+import { api } from "@/lib/api-client";
+import { toast } from "react-hot-toast";
 
 export default function ClientProfilePage() {
+  const [client, setClient] = useState<IClientProfile | null>(null);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [result, setResult] = useState("");
+
+  useEffect(() => {
+    loadClient();
+  }, []);
+
+  const loadClient = async () => {
+    try {
+      const response = await api.clients.getProfile();
+      if (response.success && response.data) {
+        setClient(response.data);
+      }
+    } catch (error) {
+      console.error("Error al cargar el cliente", error);
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (
+      newPassword === "" ||
+      confirmPassword === "" ||
+      currentPassword === ""
+    ) {
+      toast.error("Por favor, complete todos los campos");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Las contraseñas no coinciden");
+      return;
+    }
+    try {
+      const response = await api.clients.changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+      });
+      if (response.success) {
+        setResult(response.message || "Contraseña actualizada correctamente");
+        setIsLoading(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        setError("");
+      } else {
+        console.log("response", response);
+
+        setIsLoading(false);
+        setError(response.message || "Error al cambiar la contraseña");
+      }
+    } catch (error) {
+      console.error("Error al cambiar la contraseña", error);
+      setIsLoading(false);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Error al cambiar la contraseña"
+      );
+    }
+  };
   return (
     <AuthenticatedLayout title="Mi Perfil">
       <div className="max-w-4xl mx-auto p-6">
@@ -43,11 +111,21 @@ export default function ClientProfilePage() {
               <CardContent className="space-y-4">
                 <div>
                   <Label htmlFor="firstName">Nombre</Label>
-                  <Input id="firstName" placeholder="Tu nombre" disabled />
+                  <Input
+                    id="firstName"
+                    placeholder="Tu nombre"
+                    disabled
+                    value={client?.firstName || ""}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="lastName">Apellido</Label>
-                  <Input id="lastName" placeholder="Tu apellido" disabled />
+                  <Input
+                    id="lastName"
+                    placeholder="Tu apellido"
+                    disabled
+                    value={client?.lastName || ""}
+                  />
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>
@@ -56,6 +134,7 @@ export default function ClientProfilePage() {
                     type="email"
                     placeholder="tu@email.com"
                     disabled
+                    value={client?.email || ""}
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -90,11 +169,17 @@ export default function ClientProfilePage() {
                 <div className="border-t pt-4 space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Miembro desde:</span>
-                    <span className="font-medium">Enero 2024</span>
+                    <span className="font-medium">
+                      {client?.memberSince
+                        ? new Date(client.memberSince).toLocaleDateString()
+                        : "N/A"}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-600">Estado:</span>
-                    <Badge variant="default">Activo</Badge>
+                    <Badge variant="default">
+                      {client?.isActive ? "Activo" : "Inactivo"}
+                    </Badge>
                   </div>
                 </div>
               </CardContent>
@@ -118,7 +203,9 @@ export default function ClientProfilePage() {
                       Sellos Totales
                     </span>
                   </div>
-                  <div className="text-3xl font-bold text-blue-600">0</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {client?.statistics?.totalStamps}
+                  </div>
                   <p className="text-sm text-gray-600 mt-1">
                     Sellos acumulados en total
                   </p>
@@ -129,7 +216,9 @@ export default function ClientProfilePage() {
                     <Trophy className="h-5 w-5 text-green-500" />
                     <span className="text-lg font-semibold">Recompensas</span>
                   </div>
-                  <div className="text-3xl font-bold text-green-600">0</div>
+                  <div className="text-3xl font-bold text-green-600">
+                    {client?.statistics?.totalRedemptions}
+                  </div>
                   <p className="text-sm text-gray-600 mt-1">
                     Recompensas canjeadas
                   </p>
@@ -140,7 +229,9 @@ export default function ClientProfilePage() {
                     <Calendar className="h-5 w-5 text-purple-500" />
                     <span className="text-lg font-semibold">Días Activo</span>
                   </div>
-                  <div className="text-3xl font-bold text-purple-600">0</div>
+                  <div className="text-3xl font-bold text-purple-600">
+                    {client?.statistics?.activeDays}
+                  </div>
                   <p className="text-sm text-gray-600 mt-1">
                     Días desde el registro
                   </p>
@@ -234,7 +325,9 @@ export default function ClientProfilePage() {
                   id="currentPassword"
                   type="password"
                   placeholder="Ingresa tu contraseña actual"
-                  disabled
+                  required
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
                 />
               </div>
               <div>
@@ -243,7 +336,9 @@ export default function ClientProfilePage() {
                   id="newPassword"
                   type="password"
                   placeholder="Ingresa tu nueva contraseña"
-                  disabled
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
                 />
               </div>
               <div>
@@ -254,11 +349,20 @@ export default function ClientProfilePage() {
                   id="confirmPassword"
                   type="password"
                   placeholder="Confirma tu nueva contraseña"
-                  disabled
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </div>
               <div className="pt-4">
-                <Button disabled>Cambiar Contraseña</Button>
+                {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+                {result && (
+                  <p className="text-green-500 text-sm mb-2">{result}</p>
+                )}
+                <Button onClick={handleChangePassword} disabled={isLoading}>
+                  Cambiar Contraseña
+                </Button>
+                {isLoading && <p>Cambiando contraseña...</p>}
               </div>
             </CardContent>
           </Card>
