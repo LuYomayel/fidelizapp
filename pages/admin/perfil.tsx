@@ -265,39 +265,70 @@ export default function BusinessProfilePage() {
     console.log(file);
     if (file) {
       // Validar tipo de archivo
-      if (!file.type.startsWith("image/")) {
-        // @ts-ignore
-        setErrors((prev) => ({
+      const allowedTypes = [
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      if (!allowedTypes.includes(file.type)) {
+        setErrors((prev: any) => ({
           ...prev,
-          logo: "El archivo debe ser una imagen",
+          logo: "El archivo debe ser una imagen (JPG, PNG, GIF, WebP)",
         }));
         return;
       }
 
-      // Validar tamaño (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        // @ts-ignore
-        setErrors((prev) => ({
+      // Validar tamaño (max 2MB para evitar problemas en producción)
+      const maxSize = 2 * 1024 * 1024; // 2MB
+      if (file.size > maxSize) {
+        setErrors((prev: any) => ({
           ...prev,
-          logo: "El archivo no debe superar los 5MB",
+          logo: `El archivo no debe superar los 2MB (actual: ${(
+            file.size /
+            1024 /
+            1024
+          ).toFixed(2)}MB)`,
         }));
         return;
       }
 
-      setLogoFile(file);
+      // Validar dimensiones mínimas
+      const img = new Image();
+      img.onload = () => {
+        if (img.width < 100 || img.height < 100) {
+          setErrors((prev: any) => ({
+            ...prev,
+            logo: "La imagen debe tener al menos 100x100 píxeles",
+          }));
+          return;
+        }
 
-      // Crear preview del archivo
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setLogoPreview(e.target?.result as string);
+        // Si pasa todas las validaciones, guardar el archivo
+        setLogoFile(file);
+
+        // Crear preview del archivo
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setLogoPreview(e.target?.result as string);
+        };
+        reader.readAsDataURL(file);
+
+        setErrors((prev: any) => ({
+          ...prev,
+          logo: undefined,
+        }));
       };
-      reader.readAsDataURL(file);
 
-      // @ts-ignore
-      setErrors((prev) => ({
-        ...prev,
-        logo: undefined,
-      }));
+      img.onerror = () => {
+        setErrors((prev: any) => ({
+          ...prev,
+          logo: "Error al cargar la imagen. Verifica que sea un archivo válido.",
+        }));
+      };
+
+      img.src = URL.createObjectURL(file);
     }
   };
 
@@ -819,7 +850,7 @@ export default function BusinessProfilePage() {
                       <p className="pl-1">o arrastra y suelta</p>
                     </div>
                     <p className="text-xs text-gray-500">
-                      PNG, JPG, GIF hasta 5MB
+                      PNG, JPG, GIF, WebP hasta 2MB
                     </p>
                     {logoFile && (
                       <div className="space-y-2">
