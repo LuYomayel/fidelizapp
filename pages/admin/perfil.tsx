@@ -911,6 +911,8 @@ export default function BusinessProfilePage() {
             </CardContent>
           </Card>
 
+          {/* Borrar esto por ahora */}
+          {/*
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -1007,7 +1009,7 @@ export default function BusinessProfilePage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* QR Code Display */}
+                  
                   <div className="flex flex-col items-center">
                     <div className="w-64 h-64 bg-white rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-300 shadow-lg">
                       <img
@@ -1020,8 +1022,8 @@ export default function BusinessProfilePage() {
                       Código QR de {business?.businessName || "tu negocio"}
                     </p>
                   </div>
-
-                  {/* URL Information */}
+            
+                  
                   <div className="bg-gray-50 rounded-lg p-4">
                     <h4 className="font-semibold text-gray-900 mb-2">
                       🔗 URL del Negocio
@@ -1045,7 +1047,7 @@ export default function BusinessProfilePage() {
                     </p>
                   </div>
 
-                  {/* Action Buttons */}
+
                   <div className="flex flex-col sm:flex-row gap-3">
                     <Button
                       onClick={handleDownloadQR}
@@ -1066,7 +1068,7 @@ export default function BusinessProfilePage() {
                     </Button>
                   </div>
 
-                  {/* Instructions */}
+                  
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <h4 className="font-semibold text-green-900 mb-2">
                       📋 Instrucciones de Uso
@@ -1083,6 +1085,7 @@ export default function BusinessProfilePage() {
               )}
             </CardContent>
           </Card>
+          */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
