@@ -38,6 +38,11 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { IReward, IClientCard, IRedemptionTicket } from "@shared";
+import {
+  isRewardActive,
+  isRewardExpired,
+  isRewardOutOfStock,
+} from "@/utils/rewardUtils";
 
 interface ClientRewardsListProps {
   businessId?: number;
@@ -188,6 +193,11 @@ export default function ClientRewardsList({
 
   // Filtrar recompensas por término de búsqueda y negocio seleccionado
   const filteredRewards = rewards.filter((reward) => {
+    // Solo mostrar recompensas activas
+    if (!isRewardActive(reward)) {
+      return false;
+    }
+
     // Si no hay businessId específico, filtrar por negocio seleccionado
     if (!businessId && selectedBusiness) {
       if (reward.businessId !== selectedBusiness) return false;
@@ -414,11 +424,8 @@ export default function ClientRewardsList({
           {filteredRewards.map((reward) => {
             const clientCard = getClientCardForBusiness(reward.businessId);
             const canRedeem = canRedeemReward(reward);
-            const isExpired =
-              reward.expirationDate &&
-              new Date(reward.expirationDate) < new Date();
-            const isOutOfStock =
-              reward.stock !== undefined && reward.stock <= 0;
+            const isExpired = isRewardExpired(reward);
+            const isOutOfStock = isRewardOutOfStock(reward);
 
             return (
               <Card
@@ -496,11 +503,13 @@ export default function ClientRewardsList({
                           Sin stock
                         </Badge>
                       )}
-                      {reward.stock !== undefined && reward.stock > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          Stock: {reward.stock}
-                        </Badge>
-                      )}
+                      {reward.stock !== undefined &&
+                        reward.stock !== null &&
+                        reward.stock > 0 && (
+                          <Badge variant="outline" className="text-xs">
+                            Stock: {reward.stock}
+                          </Badge>
+                        )}
                     </div>
 
                     {/* Condiciones especiales */}

@@ -61,6 +61,11 @@ import {
   RewardType,
 } from "@shared";
 import { formatDate } from "@/lib/utils";
+import {
+  isRewardActive,
+  isRewardExpired,
+  isRewardOutOfStock,
+} from "@/utils/rewardUtils";
 
 export default function RecompensasPage() {
   const router = useRouter();
@@ -287,12 +292,7 @@ export default function RecompensasPage() {
   };
 
   const isActive = (reward: IReward) => {
-    if (!reward.active) return false;
-    if (reward.expirationDate) {
-      return new Date(reward.expirationDate) > new Date();
-    }
-    // Si no hay fecha de expiración, consideramos que está activa
-    return true;
+    return isRewardActive(reward);
   };
 
   const resetForm = () => {
@@ -611,16 +611,17 @@ export default function RecompensasPage() {
                             {reward.active ? "Activa" : "Desactivada"}
                           </Badge>
                         </div>
-                        {reward.stock && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm text-gray-600">
-                              Stock:
-                            </span>
-                            <span className="text-sm font-medium">
-                              {reward.stock}
-                            </span>
-                          </div>
-                        )}
+                        {reward.stock !== undefined &&
+                          reward.stock !== null && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-gray-600">
+                                Stock:
+                              </span>
+                              <span className="text-sm font-medium">
+                                {reward.stock}
+                              </span>
+                            </div>
+                          )}
                         {reward.expirationDate && (
                           <div className="flex justify-between items-center">
                             <span className="text-sm text-gray-600">
@@ -704,7 +705,9 @@ export default function RecompensasPage() {
                         </td>
                         <td className="px-4 py-3 border-b border-gray-200">
                           <span className="text-sm text-gray-900">
-                            {reward.stock || "Sin límite"}
+                            {reward.stock !== undefined && reward.stock !== null
+                              ? reward.stock.toString()
+                              : "Sin límite"}
                           </span>
                         </td>
                         <td className="px-4 py-3 border-b border-gray-200">
