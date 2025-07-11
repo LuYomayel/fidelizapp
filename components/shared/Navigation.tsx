@@ -92,6 +92,7 @@ export default function Navigation({
                         <User className="w-4 h-4 mr-2" />
                         Perfil del Negocio
                       </DropdownMenuItem>
+                      {/* Comentado para MVP - Funcionalidades avanzadas
                       <DropdownMenuItem
                         onClick={() => router.push("/admin/qr-negocio")}
                       >
@@ -106,6 +107,7 @@ export default function Navigation({
                         <Settings className="w-4 h-4 mr-2" />
                         Configuración de Códigos
                       </DropdownMenuItem>
+                      */}
                     </>
                   ) : (
                     <DropdownMenuItem

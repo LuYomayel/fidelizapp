@@ -35,6 +35,7 @@ export function AuthenticatedLayout({
     { name: "Clientes", icon: Users, href: "/admin/clientes" },
     { name: "Recompensas", icon: Gift, href: "/admin/recompensas" },
     { name: "Canjes", icon: Package, href: "/admin/canjes" },
+    /* Comentado para MVP - Funcionalidades avanzadas
     { name: "Generar Código", icon: Ticket, href: "/admin/generar-codigo" },
     {
       name: "Código Rápido",
@@ -42,6 +43,7 @@ export function AuthenticatedLayout({
       href: "/admin/generar-codigo-rapido",
     },
     { name: "Historial", icon: BarChart3, href: "/admin/historial-sellos" },
+    */
   ];
 
   const clientMenuItems = [
