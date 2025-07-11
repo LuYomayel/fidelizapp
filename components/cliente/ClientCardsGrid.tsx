@@ -4,7 +4,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { Badge } from "../ui/badge";
-import { BusinessType, IClientCard } from "@shared";
+import { BusinessType, IClientCardWithReward } from "@shared";
 import {
   Search,
   MapPin,
@@ -27,8 +27,8 @@ interface BurstParticle {
 }
 
 interface ClientCardsGridProps {
-  cards: IClientCard[];
-  onCardSelect?: (card: IClientCard) => void;
+  cards: IClientCardWithReward[];
+  onCardSelect?: (card: IClientCardWithReward) => void;
   selectedCardId?: string | number;
   showSelectionIndicator?: boolean;
 }
@@ -136,7 +136,7 @@ export default function ClientCardsGrid({
     }
   };
 
-  const handleCardClick = (card: IClientCard) => {
+  const handleCardClick = (card: IClientCardWithReward) => {
     if (onCardSelect) {
       onCardSelect(card);
     }

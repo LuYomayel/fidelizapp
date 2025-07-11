@@ -9,7 +9,7 @@ import {
   TabsTrigger,
 } from "../../components/ui/tabs";
 import { api } from "../../lib/api-client";
-import { IClientCard } from "@shared";
+import { IClientCardWithReward } from "@shared";
 import { ProtectedRoute } from "../../components/shared/ProtectedRoute";
 import { AuthenticatedLayout } from "../../components/shared/AuthenticatedLayout";
 import ClientRewardsList from "@/components/cliente/ClientRewardsList";
@@ -19,8 +19,9 @@ import ClientCardsGrid from "@/components/cliente/ClientCardsGrid";
 
 export default function MiTarjetaPage() {
   const router = useRouter();
-  const [clientCards, setClientCards] = useState<IClientCard[]>([]);
-  const [selectedCard, setSelectedCard] = useState<IClientCard | null>(null);
+  const [clientCards, setClientCards] = useState<IClientCardWithReward[]>([]);
+  const [selectedCard, setSelectedCard] =
+    useState<IClientCardWithReward | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -52,7 +53,7 @@ export default function MiTarjetaPage() {
     }
   };
 
-  const handleCardSelect = (card: IClientCard) => {
+  const handleCardSelect = (card: IClientCardWithReward) => {
     setSelectedCard(card);
   };
 
