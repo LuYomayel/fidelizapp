@@ -243,13 +243,11 @@ export default function RecompensasPage() {
         stampsCost: Number(formData.stampsCost),
         type: formData.type,
         typeDescription:
-          formData.type === RewardType.OTHER
-            ? formData.typeDescription
-            : undefined,
-        stock: formData.stock ? Number(formData.stock) : undefined,
+          formData.type === RewardType.OTHER ? formData.typeDescription : null,
+        stock: formData.stock ? Number(formData.stock) : null,
         expirationDate: formData.expirationDate
           ? new Date(formData.expirationDate)
-          : undefined,
+          : null,
       };
 
       const response = await api.rewards.update(selectedReward.id, payload);

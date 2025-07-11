@@ -50,6 +50,7 @@ import {
   IStampHistory,
   IClient,
   IClientCardWithReward,
+  RewardType,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -577,9 +578,11 @@ export const api = {
         description?: string;
         requiredStamps?: number;
         stampsCost?: number;
+        type?: RewardType;
+        typeDescription?: string | null;
         image?: string;
-        expirationDate?: Date;
-        stock?: number;
+        expirationDate?: Date | null;
+        stock?: number | null;
         specialConditions?: string;
         active?: boolean;
       }
