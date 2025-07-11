@@ -49,6 +49,7 @@ import {
   IChangePasswordWithoutCurrentDto,
   IStampHistory,
   IClient,
+  IClientCardWithReward,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -494,7 +495,7 @@ export const api = {
       }>("/client-cards/redeem", data),
 
     // Obtener todas las tarjetas del cliente
-    getAll: () => apiClient.get<IClientCard[]>("/client-cards"),
+    getAll: () => apiClient.get<IClientCardWithReward[]>("/client-cards"),
 
     // Obtener tarjeta específica por negocio
     getByBusiness: (businessId: string) =>
