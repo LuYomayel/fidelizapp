@@ -47,6 +47,8 @@ import {
   IUpdateClientProfileDto,
   IClientSettings,
   IChangePasswordWithoutCurrentDto,
+  IStampHistory,
+  IClient,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
@@ -429,20 +431,8 @@ export const api = {
       apiClient.get<IBusinessProfile>("/business/profile/complete"),
     updateProfile: (data: IUpdateBusinessProfileDto) =>
       apiClient.put<IBusinessProfile>("/business/profile/update", data),
-    updateLogo: (formData: FormData) => {
-      console.log("Enviando FormData al endpoint /business/profile/logo");
-      console.log("FormData:", formData);
-      console.log(
-        "FormData instanceof FormData:",
-        formData instanceof FormData
-      );
-
-      // Usar fetch directamente para FormData
-      return fetchAPI<IBusinessProfile>("/business/profile/logo", {
-        method: "PUT",
-        body: formData,
-      });
-    },
+    updateLogo: (formData: FormData) =>
+      apiClient.put<IBusinessProfile>("/business/profile/logo", formData),
     changePassword: (data: IChangePasswordDto) =>
       apiClient.post<void>("/business/profile/change-password", data),
     generateQR: () =>
@@ -471,10 +461,13 @@ export const api = {
         queryParams.append("dateFrom", params.dateFrom.toISOString());
       if (params?.dateTo)
         queryParams.append("dateTo", params.dateTo.toISOString());
+      if (params?.clientId)
+        queryParams.append("clientId", params.clientId.toString());
 
       const queryString = queryParams.toString();
       return apiClient.get<{
-        stamps: IStamp[];
+        stamps: IStampHistory[];
+        clients: IClient[];
         total: number;
         page: number;
         totalPages: number;

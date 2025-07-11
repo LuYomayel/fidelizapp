@@ -17,6 +17,8 @@ import {
   Activity,
   Plus,
   RefreshCw,
+  Grid3X3,
+  List,
 } from "lucide-react";
 
 import { api } from "@/lib/api-client";
@@ -43,6 +45,7 @@ export default function ClientesPage() {
   const [totalClients, setTotalClients] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   const router = useRouter();
 
@@ -168,15 +171,6 @@ export default function ClientesPage() {
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.back()}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Volver
-              </Button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">
                   Mis Clientes
@@ -252,6 +246,7 @@ export default function ClientesPage() {
               </CardContent>
             </Card>
 
+            {/* Ocultar por el momento para el MVP
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
@@ -268,9 +263,10 @@ export default function ClientesPage() {
                 </p>
               </CardContent>
             </Card>
+            */}
           </div>
 
-          {/* Búsqueda y filtros */}
+          {/* Búsqueda, filtros y controles de vista */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -282,19 +278,46 @@ export default function ClientesPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Buscar por nombre o email..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full"
-                  />
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="flex gap-4 w-full sm:w-auto">
+                  <div className="flex-1 sm:w-64">
+                    <Input
+                      placeholder="Buscar por nombre o email..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full"
+                    />
+                  </div>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <Filter className="w-4 h-4" />
+                    Filtros
+                  </Button>
                 </div>
-                <Button variant="outline" className="flex items-center gap-2">
-                  <Filter className="w-4 h-4" />
-                  Filtros
-                </Button>
+
+                {/* Controles de vista */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600 hidden sm:inline">
+                    Vista:
+                  </span>
+                  <div className="flex border border-gray-300 rounded-md overflow-hidden">
+                    <Button
+                      variant={viewMode === "cards" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("cards")}
+                      className="rounded-none border-0 h-9 px-3"
+                    >
+                      <Grid3X3 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "table" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("table")}
+                      className="rounded-none border-0 h-9 px-3"
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -322,7 +345,8 @@ export default function ClientesPage() {
                 )}
               </CardContent>
             </Card>
-          ) : (
+          ) : viewMode === "cards" ? (
+            /* Vista de Cards */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredClients.map((client) => (
                 <Card
@@ -355,9 +379,11 @@ export default function ClientesPage() {
                           </div>
                         </div>
                       </div>
+                      {/* Ocultar por el momento para el MVP
                       <Badge className={obtenerNivelColor(client.level)}>
                         {obtenerNivelTexto(client.level)}
                       </Badge>
+                      */}
                     </div>
                   </CardHeader>
 
@@ -382,10 +408,12 @@ export default function ClientesPage() {
 
                     {/* Información adicional */}
                     <div className="space-y-2 text-sm">
+                      {/* Ocultar por el momento para el MVP
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Nivel:</span>
                         <span className="font-medium">{client.level}</span>
                       </div>
+                      */}
                       <div className="flex items-center justify-between">
                         <span className="text-gray-600">Canjes:</span>
                         <span className="font-medium">{client.usedStamps}</span>
@@ -424,6 +452,134 @@ export default function ClientesPage() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          ) : (
+            /* Vista de Tabla */
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-200 rounded-lg overflow-hidden">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Cliente
+                    </th>
+                    {/* Ocultar por el momento para el MVP
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Nivel
+                    </th>
+                    */}
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Sellos Totales
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Disponibles
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Canjes
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Último Canje
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Registrado
+                    </th>
+                    <th className="px-4 py-3 text-center text-sm font-medium text-gray-700 border-b border-gray-200">
+                      Acciones
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white">
+                  {filteredClients.map((client) => (
+                    <tr
+                      key={client.id}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                            {client?.profilePicture ? (
+                              <img
+                                src={client.profilePicture}
+                                alt={`${client.firstName} ${client.lastName}`}
+                                className="w-10 h-10 rounded-full object-cover"
+                              />
+                            ) : (
+                              `${client.firstName.charAt(0) || ""}${
+                                client.lastName.charAt(0) || ""
+                              }`
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-medium text-gray-900">
+                              {client.firstName} {client.lastName}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {client.email}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      {/* Ocultar por el momento para el MVP
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <Badge className={obtenerNivelColor(client.level)}>
+                          {obtenerNivelTexto(client.level)}
+                        </Badge>
+                      </td>
+                      */}
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <div className="text-center">
+                          <div className="font-bold text-blue-600">
+                            {client.totalStamps}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <div className="text-center">
+                          <div className="font-bold text-green-600">
+                            {client.availableStamps}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <div className="text-center">
+                          <div className="font-bold text-purple-600">
+                            {client.usedStamps}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <span className="text-sm text-gray-900">
+                          {client.lastStampDate
+                            ? formatearFecha(client.lastStampDate.toString())
+                            : "Nunca"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <span className="text-sm text-gray-900">
+                          {formatearFecha(client.createdAt?.toString() || "")}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 border-b border-gray-200">
+                        <div className="flex items-center justify-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              // TODO: Implementar vista detallada del cliente
+                              console.log(
+                                "Ver detalles del cliente:",
+                                client.id
+                              );
+                            }}
+                            title="Ver detalles del cliente"
+                          >
+                            <User className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

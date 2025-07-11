@@ -6,7 +6,12 @@ import { Building2, ArrowLeft, Upload, Check } from "lucide-react";
 
 // Importar utilidades y tipos
 import { validarEmail, validarTelefono } from "@/utils";
-import { BusinessSize, BusinessType, CreateBusinessDto } from "@shared";
+import {
+  BusinessSize,
+  BusinessType,
+  CreateBusinessDto,
+  IBusiness,
+} from "@shared";
 import { api } from "../../lib/api-client";
 
 // Componentes shadcn/ui
@@ -30,7 +35,7 @@ import {
 } from "@/components/ui/select";
 
 export default function RegistroNegocio() {
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<IBusiness>({
     businessName: "",
     email: "",
     internalPhone: "",
@@ -50,6 +55,8 @@ export default function RegistroNegocio() {
     password: "",
   });
 
+  const [customType, setCustomType] = useState("");
+
   const [errors, setErrors] = useState<any>({
     businessName: "",
     email: "",
@@ -63,6 +70,7 @@ export default function RegistroNegocio() {
     province: "",
 
     type: BusinessType.CAFETERIA,
+    customType: "",
     instagram: "",
     tiktok: "",
     website: "",
@@ -109,6 +117,9 @@ export default function RegistroNegocio() {
     }
 
     // Validar tipo otro
+    if (formData.type === BusinessType.OTRO && !customType.trim()) {
+      newErrors.customType = "Debes especificar el tipo de negocio";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -130,11 +141,17 @@ export default function RegistroNegocio() {
       formDataToSend.append("email", formData.email);
       formDataToSend.append("password", formData.email);
       formDataToSend.append("size", formData.size);
-      formDataToSend.append("street", formData.street);
-      formDataToSend.append("neighborhood", formData.neighborhood);
-      formDataToSend.append("postalCode", formData.postalCode);
-      formDataToSend.append("province", formData.province);
+      if (formData.street) formDataToSend.append("street", formData.street);
+      if (formData.neighborhood)
+        formDataToSend.append("neighborhood", formData.neighborhood);
+      if (formData.postalCode)
+        formDataToSend.append("postalCode", formData.postalCode);
+      if (formData.province)
+        formDataToSend.append("province", formData.province);
       formDataToSend.append("type", formData.type);
+      if (formData.type === BusinessType.OTRO && customType.trim()) {
+        formDataToSend.append("customType", customType.trim());
+      }
       if (formData.internalPhone)
         formDataToSend.append("internalPhone", formData.internalPhone);
       if (formData.externalPhone)
@@ -173,6 +190,18 @@ export default function RegistroNegocio() {
       ...prev,
       [field]: value,
     }));
+    // Si cambia el tipo de negocio, limpiar customType y su error
+    if (field === "type") {
+      if (value !== BusinessType.OTRO) {
+        setCustomType("");
+      }
+      if (errors.customType) {
+        setErrors((prev: any) => ({
+          ...prev,
+          customType: "",
+        }));
+      }
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -340,8 +369,12 @@ export default function RegistroNegocio() {
                         htmlFor="telefonoInterno"
                         className="text-sm font-medium text-gray-700"
                       >
-                        Teléfono Interno
+                        Teléfono Interno &nbsp;
                       </Label>
+                      <small className="text-gray-500">
+                        (Usado internamente por Fidelizapp – puede ser el mismo
+                        que el externo)
+                      </small>
                       <Input
                         id="telefonoInterno"
                         value={formData.internalPhone}
@@ -447,14 +480,14 @@ export default function RegistroNegocio() {
                         </Label>
                         <Input
                           id="tipoOtro"
-                          value={formData.type || ""}
-                          onChange={(e) => handleChange("type", e.target.value)}
-                          className={errors.type ? "border-red-500" : ""}
+                          value={customType}
+                          onChange={(e) => setCustomType(e.target.value)}
+                          className={errors.customType ? "border-red-500" : ""}
                           placeholder="Describe tu tipo de negocio"
                         />
-                        {errors.type && (
+                        {errors.customType && (
                           <p className="mt-1 text-sm text-red-600">
-                            {errors.type}
+                            {errors.customType}
                           </p>
                         )}
                       </div>

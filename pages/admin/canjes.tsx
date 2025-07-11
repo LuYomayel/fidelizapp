@@ -35,7 +35,7 @@ import {
   RedemptionStatus,
 } from "@shared";
 
-export default function ReclamosPage() {
+export default function CanjesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [dashboard, setDashboard] = useState<IRedemptionDashboard | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -182,7 +182,7 @@ export default function ReclamosPage() {
   if (isLoading) {
     return (
       <ProtectedRoute allowedUserTypes={["admin"]}>
-        <AuthenticatedLayout title="Gestión de Reclamos">
+        <AuthenticatedLayout title="Gestión de Canjes">
           <div className="flex items-center justify-center min-h-96">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
@@ -193,13 +193,13 @@ export default function ReclamosPage() {
 
   return (
     <ProtectedRoute allowedUserTypes={["admin"]}>
-      <AuthenticatedLayout title="Gestión de Reclamos">
+      <AuthenticatedLayout title="Gestión de Canjes">
         <div className="max-w-7xl mx-auto p-6 space-y-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Gestión de Reclamos
+                Gestión de Canjes
               </h1>
               <p className="text-gray-600 mt-1">
                 Administra las recompensas canjeadas por tus clientes
@@ -236,7 +236,7 @@ export default function ReclamosPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">
-                      Entregadas
+                      Entregados
                     </p>
                     <p className="text-2xl font-bold text-green-600">
                       {dashboard?.totalDelivered || 0}
@@ -254,7 +254,7 @@ export default function ReclamosPage() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-gray-600">
-                      Expiradas
+                      Expirados
                     </p>
                     <p className="text-2xl font-bold text-red-600">
                       {dashboard?.totalExpired || 0}
@@ -271,11 +271,11 @@ export default function ReclamosPage() {
           {/* Tabs */}
           <Tabs defaultValue="pending" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="pending">Reclamos Pendientes</TabsTrigger>
-              <TabsTrigger value="delivered">Entregas Recientes</TabsTrigger>
+              <TabsTrigger value="pending">Canjes Pendientes</TabsTrigger>
+              <TabsTrigger value="delivered">Canjes Entregados</TabsTrigger>
             </TabsList>
 
-            {/* Tab de Reclamos Pendientes */}
+            {/* Tab de Canjes Pendientes */}
             <TabsContent value="pending" className="space-y-4">
               {/* Barra de búsqueda */}
               <div className="relative max-w-md">
@@ -288,7 +288,7 @@ export default function ReclamosPage() {
                 />
               </div>
 
-              {/* Lista de reclamos pendientes */}
+              {/* Lista de canjes pendientes */}
               <div className="space-y-4">
                 {filteredPendingRedemptions.map((redemption) => (
                   <Card
@@ -404,12 +404,12 @@ export default function ReclamosPage() {
                     <CardContent>
                       <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        No hay reclamos pendientes
+                        No hay canjes pendientes
                       </h3>
                       <p className="text-gray-600">
                         {searchTerm
-                          ? "No se encontraron reclamos con ese término de búsqueda"
-                          : "Todos los reclamos han sido procesados"}
+                          ? "No se encontraron canjes con ese término de búsqueda"
+                          : "Todos los canjes han sido procesados"}
                       </p>
                     </CardContent>
                   </Card>
@@ -417,7 +417,7 @@ export default function ReclamosPage() {
               </div>
             </TabsContent>
 
-            {/* Tab de Entregas Recientes */}
+            {/* Tab de Canjes Entregados */}
             <TabsContent value="delivered" className="space-y-4">
               <div className="space-y-4">
                 {dashboard?.recentDeliveries.map((redemption) => (
@@ -457,10 +457,10 @@ export default function ReclamosPage() {
                     <CardContent>
                       <CheckCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        No hay entregas recientes
+                        No hay canjes entregados
                       </h3>
                       <p className="text-gray-600">
-                        Las entregas realizadas aparecerán aquí
+                        Los canjes entregados aparecerán aquí.
                       </p>
                     </CardContent>
                   </Card>

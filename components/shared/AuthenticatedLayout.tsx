@@ -34,7 +34,7 @@ export function AuthenticatedLayout({
     { name: "Dashboard", icon: Home, href: "/admin/dashboard" },
     { name: "Clientes", icon: Users, href: "/admin/clientes" },
     { name: "Recompensas", icon: Gift, href: "/admin/recompensas" },
-    { name: "Reclamos", icon: Package, href: "/admin/reclamos" },
+    { name: "Canjes", icon: Package, href: "/admin/canjes" },
     { name: "Generar Código", icon: Ticket, href: "/admin/generar-codigo" },
     {
       name: "Código Rápido",
@@ -179,7 +179,7 @@ export function AuthenticatedLayout({
           </Button>
         </div>
 
-        <Navigation title={title} />
+        <Navigation />
 
         <main className="flex-1">{children}</main>
       </div>

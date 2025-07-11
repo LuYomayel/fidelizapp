@@ -48,6 +48,7 @@ export default function BusinessProfilePage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [qrData, setQrData] = useState<IBusinessQRData | null>(null);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
+  const [customType, setCustomType] = useState("");
   const [formData, setFormData] = useState<any>({
     businessName: "",
     email: "",
@@ -85,6 +86,7 @@ export default function BusinessProfilePage() {
         postalCode: response.data?.postalCode || "",
         province: response.data?.province || "",
         type: response.data?.type || BusinessType.CAFETERIA,
+        customType: response.data?.customType || "",
         instagram: response.data?.instagram || "",
         tiktok: response.data?.tiktok || "",
         website: response.data?.website || "",
@@ -92,6 +94,8 @@ export default function BusinessProfilePage() {
         rewardDescription: response.data?.rewardDescription || "",
         logoPath: response.data?.logoPath || "",
       });
+      // Cargar customType si existe
+      setCustomType(response.data?.customType || "");
       console.log(
         `${process.env.NEXT_PUBLIC_API_URL}/uploads/${response.data?.logoPath}`
       );
@@ -179,6 +183,11 @@ export default function BusinessProfilePage() {
       newErrors.province = "La provincia es obligatoria";
     }
 
+    // Validar tipo otro
+    if (formData.type === BusinessType.OTRO && !customType.trim()) {
+      newErrors.customType = "Debes especificar el tipo de negocio";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -194,6 +203,18 @@ export default function BusinessProfilePage() {
         ...prev,
         [field]: "",
       }));
+    }
+    // Si cambia el tipo de negocio, limpiar customType y su error
+    if (field === "type") {
+      if (value !== BusinessType.OTRO) {
+        setCustomType("");
+      }
+      if (errors.customType) {
+        setErrors((prev: any) => ({
+          ...prev,
+          customType: "",
+        }));
+      }
     }
   };
 
@@ -222,6 +243,8 @@ export default function BusinessProfilePage() {
         instagram: formData.instagram || undefined,
         tiktok: formData.tiktok || undefined,
         website: formData.website || undefined,
+        customType:
+          formData.type === BusinessType.OTRO ? customType.trim() : undefined,
       };
 
       const response = await api.business.updateProfile(updateData);
@@ -344,28 +367,10 @@ export default function BusinessProfilePage() {
       const formData = new FormData();
       formData.append("logo", logoFile);
 
-      // Debug: Verificar que el FormData se creó correctamente
-      console.log("=== FRONTEND DEBUG ===");
-      console.log("FormData creado:", formData);
-      console.log(
-        "FormData instanceof FormData:",
-        formData instanceof FormData
-      );
-      console.log("Archivo a enviar:", logoFile);
-      console.log("Archivo instanceof File:", logoFile instanceof File);
-      console.log("Nombre del archivo:", logoFile.name);
-      console.log("Tipo del archivo:", logoFile.type);
-      console.log("Tamaño del archivo:", logoFile.size);
-
-      // Verificar que el archivo está en el FormData
-      console.log("FormData entries:");
-      formData.forEach((value, key) => {
-        console.log(`${key}:`, value);
-        console.log(`${key} instanceof File:`, value instanceof File);
-      });
-      console.log("=== FIN FRONTEND DEBUG ===");
-
       const response = await api.business.updateLogo(formData);
+      if (!response.success) {
+        throw new Error(response.message || "Error al actualizar el logo");
+      }
       setResult("Logo actualizado correctamente");
       setTimeout(() => {
         setResult("");
@@ -488,7 +493,11 @@ export default function BusinessProfilePage() {
                   )}
                 </div>
                 <div>
-                  <Label htmlFor="internalPhone">Teléfono Interno</Label>
+                  <Label htmlFor="internalPhone">Teléfono Interno &nbsp;</Label>
+                  <small className="text-gray-500">
+                    (Usado internamente por Fidelizapp – puede ser el mismo que
+                    el externo)
+                  </small>
                   <Input
                     id="internalPhone"
                     placeholder="Teléfono interno"
@@ -565,7 +574,7 @@ export default function BusinessProfilePage() {
                       <SelectItem value={BusinessType.MANICURA}>
                         Manicura
                       </SelectItem>
-                      {/* <SelectItem value={BusinessType.OTRO}>Otro</SelectItem> */}
+                      <SelectItem value={BusinessType.OTRO}>Otro</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -576,14 +585,20 @@ export default function BusinessProfilePage() {
                       htmlFor="tipoOtro"
                       className="text-sm font-medium text-gray-700"
                     >
-                      Especifica el tipo
+                      Especifica el tipo *
                     </Label>
                     <Input
                       id="tipoOtro"
-                      value={formData.type || ""}
-                      onChange={(e) => handleChange("type", e.target.value)}
+                      value={customType}
+                      onChange={(e) => setCustomType(e.target.value)}
+                      className={errors.customType ? "border-red-500" : ""}
                       placeholder="Describe tu tipo de negocio"
                     />
+                    {errors.customType && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.customType}
+                      </p>
+                    )}
                   </div>
                 )}
               </div>

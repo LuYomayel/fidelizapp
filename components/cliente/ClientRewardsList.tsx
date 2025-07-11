@@ -454,7 +454,9 @@ export default function ClientRewardsList({
                   <div className="space-y-3">
                     {/* Costo en sellos */}
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">Costo:</span>
+                      <span className="text-sm text-gray-600">
+                        Sellos requeridos:
+                      </span>
                       <div className="flex items-center gap-1">
                         <Sparkles className="w-4 h-4 text-yellow-500" />
                         <span className="font-semibold">
@@ -580,7 +582,7 @@ export default function ClientRewardsList({
                   </div>
                   <div className="bg-blue-50 p-4 rounded-lg">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Costo:</span>
+                      <span>Sellos requeridos:</span>
                       <span className="font-semibold">
                         {selectedReward.stampsCost} sellos
                       </span>

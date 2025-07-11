@@ -187,6 +187,7 @@ export default function AdminLogin() {
                 </Button>
 
                 {/* Separador */}
+                {/*
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-300" />
@@ -195,12 +196,14 @@ export default function AdminLogin() {
                     <span className="px-2 bg-white text-gray-500">O</span>
                   </div>
                 </div>
-
+                */}
                 {/* Botón de Google */}
+                {/*
                 <GoogleSignInButton
                   text="Continuar con Google"
                   disabled={isLoading}
                 />
+                */}
               </form>
 
               <div className="mt-6 text-center">
@@ -216,22 +219,6 @@ export default function AdminLogin() {
               </div>
             </CardContent>
           </Card>
-          {/* Información de prueba para desarrollo */}
-          <div className="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h4 className="text-sm font-medium text-yellow-800 mb-2">
-              Datos de prueba:
-            </h4>
-            <p className="text-sm text-yellow-700">
-              Email:{" "}
-              <code className="bg-yellow-100 px-1 rounded">
-                admin@cafearoma.com
-              </code>
-            </p>
-            <p className="text-sm text-yellow-700">
-              Contraseña:{" "}
-              <code className="bg-yellow-100 px-1 rounded">admin123</code>
-            </p>
-          </div>
         </div>
       </div>
     </>

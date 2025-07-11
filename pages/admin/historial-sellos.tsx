@@ -6,6 +6,7 @@ import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
 import { Alert } from "../../components/ui/alert";
 import { Select } from "../../components/ui/select";
+import { ClientSelect } from "../../components/ui/client-select";
 import { api } from "../../lib/api-client";
 import {
   IStamp,
@@ -14,6 +15,8 @@ import {
   PurchaseType,
   StampSummaryDto,
   StampFilters,
+  IStampHistory,
+  IClient,
 } from "@shared";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 import { AuthenticatedLayout } from "@/components/shared/AuthenticatedLayout";
@@ -67,20 +70,24 @@ const getStatusIcon = (status: StampStatus) => {
 
 export default function HistorialSellosPage() {
   const router = useRouter();
-  const [stamps, setStamps] = useState<IStamp[]>([]);
+  const [stamps, setStamps] = useState<IStampHistory[]>([]);
+  const [clients, setClients] = useState<IClient[]>([]);
   const [statistics, setStatistics] = useState<StampSummaryDto | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [clientFilter, setClientFilter] = useState<
+    string | number | undefined
+  >();
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchStamps();
     fetchStatistics();
-  }, [page, statusFilter, typeFilter, searchTerm]);
+  }, [page, statusFilter, typeFilter, searchTerm, clientFilter]);
 
   const fetchStamps = async () => {
     setIsLoading(true);
@@ -93,12 +100,14 @@ export default function HistorialSellosPage() {
         search: searchTerm || undefined,
         status: (statusFilter as StampStatus) || undefined,
         stampType: (typeFilter as StampType) || undefined,
+        clientId: clientFilter,
       };
 
       const response = await api.stamps.getHistory(filters);
-      console.log("response", response);
+
       if (response.success) {
         setStamps(response.data?.stamps || []);
+        setClients(response.data?.clients || []);
         setTotalPages(response.data?.totalPages || 1);
       } else {
         throw new Error(response.message || "Error al cargar el historial");
@@ -169,6 +178,17 @@ export default function HistorialSellosPage() {
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("");
+    setTypeFilter("");
+    setClientFilter(undefined);
+    setPage(1);
+  };
+
+  const hasActiveFilters =
+    searchTerm || statusFilter || typeFilter || clientFilter;
+
   return (
     <ProtectedRoute allowedUserTypes={["admin"]}>
       <AuthenticatedLayout>
@@ -215,7 +235,20 @@ export default function HistorialSellosPage() {
 
             {/* Filtros */}
             <Card className="p-4 mb-6">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Filtros</h3>
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    Limpiar filtros
+                  </Button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <Input
                   placeholder="Buscar por código..."
                   value={searchTerm}
@@ -244,6 +277,13 @@ export default function HistorialSellosPage() {
                     </option>
                   ))}
                 </select>
+                <ClientSelect
+                  clients={clients}
+                  selectedClientId={clientFilter}
+                  onClientChange={setClientFilter}
+                  placeholder="Filtrar por cliente..."
+                  className="w-full"
+                />
                 <Button onClick={fetchStamps} disabled={isLoading}>
                   {isLoading ? "Buscando..." : "Buscar"}
                 </Button>
@@ -256,8 +296,79 @@ export default function HistorialSellosPage() {
               </Alert>
             )}
 
+            {/* Indicador de filtros activos */}
+            {hasActiveFilters && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-blue-600 font-medium">
+                      Filtros activos:
+                    </span>
+                    {searchTerm && (
+                      <Badge variant="secondary" className="text-xs">
+                        Código: {searchTerm}
+                      </Badge>
+                    )}
+                    {statusFilter && (
+                      <Badge variant="secondary" className="text-xs">
+                        Estado:{" "}
+                        {
+                          STATUS_OPTIONS.find(
+                            (opt) => opt.value === statusFilter
+                          )?.label
+                        }
+                      </Badge>
+                    )}
+                    {typeFilter && (
+                      <Badge variant="secondary" className="text-xs">
+                        Tipo:{" "}
+                        {
+                          TYPE_OPTIONS.find((opt) => opt.value === typeFilter)
+                            ?.label
+                        }
+                      </Badge>
+                    )}
+                    {clientFilter && (
+                      <Badge variant="secondary" className="text-xs">
+                        Cliente:{" "}
+                        {
+                          clients.find(
+                            (c) => c.id?.toString() === clientFilter?.toString()
+                          )?.firstName
+                        }{" "}
+                        {
+                          clients.find(
+                            (c) => c.id?.toString() === clientFilter?.toString()
+                          )?.lastName
+                        }
+                      </Badge>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="text-blue-600 hover:text-blue-800"
+                  >
+                    Limpiar todo
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Lista de sellos */}
             <div className="space-y-4">
+              {/* Contador de resultados */}
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Mostrando {stamps.length} sellos
+                  {totalPages > 1 && ` (página ${page} de ${totalPages})`}
+                </p>
+                {hasActiveFilters && (
+                  <p className="text-sm text-blue-600">Filtros aplicados</p>
+                )}
+              </div>
+
               {stamps.map((stamp) => (
                 <Card key={stamp.id} className="p-4">
                   <div className="flex items-center justify-between">
@@ -288,6 +399,19 @@ export default function HistorialSellosPage() {
                             {stamp.stampValue > 1 ? "s" : ""}
                           </Badge>
                         </div>
+                        {stamp.client && (
+                          <div className="mb-2">
+                            <p className="text-sm text-gray-600 mb-1">
+                              Usado por:{" "}
+                              <span className="font-medium text-gray-900">
+                                {stamp.client.firstName} {stamp.client.lastName}
+                              </span>
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {stamp.client.email}
+                            </p>
+                          </div>
+                        )}
                         <p className="text-sm text-gray-600 mb-1">
                           {stamp.description}
                         </p>
@@ -338,17 +462,25 @@ export default function HistorialSellosPage() {
                     <div className="text-6xl mb-2">🎫</div>
                     <h3 className="text-lg font-semibold">No hay sellos</h3>
                     <p className="text-sm">
-                      {searchTerm || statusFilter || typeFilter
+                      {hasActiveFilters
                         ? "No se encontraron sellos con los filtros aplicados"
                         : "Aún no has generado ningún sello"}
                     </p>
                   </div>
-                  <Button
-                    onClick={() => router.push("/admin/generar-codigo-rapido")}
-                    className="mt-4"
-                  >
-                    Generar Primer Sello
-                  </Button>
+                  {hasActiveFilters ? (
+                    <Button onClick={clearFilters} className="mt-4">
+                      Limpiar filtros
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() =>
+                        router.push("/admin/generar-codigo-rapido")
+                      }
+                      className="mt-4"
+                    >
+                      Generar Primer Sello
+                    </Button>
+                  )}
                 </Card>
               )}
             </div>
