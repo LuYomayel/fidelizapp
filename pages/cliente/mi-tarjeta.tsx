@@ -20,6 +20,7 @@ import ClientCardsGrid from "@/components/cliente/ClientCardsGrid";
 export default function MiTarjetaPage() {
   const router = useRouter();
   const [clientCards, setClientCards] = useState<IClientCardWithReward[]>([]);
+
   const [selectedCard, setSelectedCard] =
     useState<IClientCardWithReward | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -38,7 +39,7 @@ export default function MiTarjetaPage() {
 
       if (response.success && response.data) {
         setClientCards(response.data);
-        console.log("response.data", response.data);
+
         if (response.data.length > 0) {
           setSelectedCard(response.data[0]);
         }
@@ -152,6 +153,7 @@ export default function MiTarjetaPage() {
                   cards={clientCards}
                   selectedCardId={selectedCard?.id}
                   onCardSelect={handleCardSelect}
+                  onRewardRedeemed={loadClientCards}
                 />
               </TabsContent>
 

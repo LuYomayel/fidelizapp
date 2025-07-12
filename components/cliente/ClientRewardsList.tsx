@@ -43,6 +43,8 @@ import {
   isRewardExpired,
   isRewardOutOfStock,
 } from "@/utils/rewardUtils";
+import RewardRedemptionDialog from "./RewardRedemptionDialog";
+import RewardTicketDialog from "./RewardTicketDialog";
 
 interface ClientRewardsListProps {
   businessId?: number;
@@ -57,11 +59,11 @@ export default function ClientRewardsList({
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
+  const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
+  const [redemptionTicket, setRedemptionTicket] = useState<any>(null);
   const [selectedReward, setSelectedReward] = useState<IReward | null>(null);
-  const [redemptionTicket, setRedemptionTicket] =
-    useState<IRedemptionTicket | null>(null);
-  const [showTicketDialog, setShowTicketDialog] = useState(false);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const [selectedClientCard, setSelectedClientCard] =
+    useState<IClientCard | null>(null);
   const [selectedBusiness, setSelectedBusiness] = useState<number | null>(null);
   const [businessRewardsCount, setBusinessRewardsCount] = useState<
     Record<number, number>
@@ -136,30 +138,30 @@ export default function ClientRewardsList({
     }
   }, [selectedBusiness, businessId]);
 
-  const handleRedeemReward = async () => {
-    if (!selectedReward) return;
+  const handleRedemptionSuccess = async (ticket: IRedemptionTicket) => {
+    console.log("🎯 ClientRewardsList handleRedemptionSuccess called");
+    console.log("🎫 Ticket received:", ticket);
 
-    try {
-      const response = await api.rewards.redeem(
-        selectedReward.id,
-        selectedReward.businessId
-      );
+    // Primero recargar datos para actualizar sellos disponibles
+    console.log("🔄 Reloading data first...");
+    await loadData();
 
-      if (response.success && response.data) {
-        setRedemptionTicket(response.data);
-        setShowTicketDialog(true);
-        setIsRedeemDialogOpen(false);
+    // DESPUÉS mostrar el ticket en el nuevo dialog (con delay para que termine la recarga)
+    setTimeout(() => {
+      console.log("📋 Setting redemption ticket after reload...");
+      setRedemptionTicket(ticket);
 
-        // Recargar datos para actualizar sellos disponibles
-        await loadData();
-      }
-    } catch (err) {
-      console.error("Error redeeming reward:", err);
-    }
+      console.log("🔓 Opening ticket dialog after reload...");
+      setIsTicketDialogOpen(true);
+
+      console.log("🎫 Ticket dialog should be open now");
+    }, 100);
   };
 
   const openRedeemDialog = (reward: IReward) => {
+    const clientCard = getClientCardForBusiness(reward.businessId);
     setSelectedReward(reward);
+    setSelectedClientCard(clientCard || null);
     setIsRedeemDialogOpen(true);
   };
 
@@ -170,25 +172,6 @@ export default function ClientRewardsList({
   const canRedeemReward = (reward: IReward) => {
     const clientCard = getClientCardForBusiness(reward.businessId);
     return clientCard && clientCard.availableStamps >= reward.stampsCost;
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopySuccess(true);
-    setTimeout(() => setCopySuccess(false), 2000);
-  };
-
-  const formatTimeRemaining = (expiresAt: Date) => {
-    const now = new Date();
-    const expires = new Date(expiresAt);
-    const diff = expires.getTime() - now.getTime();
-
-    if (diff <= 0) return "Expirado";
-
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-    return `${hours}h ${minutes}m`;
   };
 
   // Filtrar recompensas por término de búsqueda y negocio seleccionado
@@ -574,171 +557,21 @@ export default function ClientRewardsList({
         </Card>
       )}
 
-      {/* Diálogo de confirmación de canje */}
-      <AlertDialog
-        open={isRedeemDialogOpen}
-        onOpenChange={setIsRedeemDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar canje de recompensa</AlertDialogTitle>
-            <AlertDialogDescription>
-              {selectedReward && (
-                <div className="space-y-4">
-                  <div>
-                    ¿Estás seguro que quieres canjear{" "}
-                    <strong>{selectedReward.name}</strong>?
-                  </div>
-                  <div className="bg-blue-50 p-4 rounded-lg">
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Sellos requeridos:</span>
-                      <span className="font-semibold">
-                        {selectedReward.stampsCost} sellos
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm">
-                      <span>Tienes:</span>
-                      <span className="font-semibold">
-                        {getClientCardForBusiness(selectedReward.businessId)
-                          ?.availableStamps || 0}{" "}
-                        sellos
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between text-sm font-semibold border-t pt-2 mt-2">
-                      <span>Quedarás con:</span>
-                      <span>
-                        {(getClientCardForBusiness(selectedReward.businessId)
-                          ?.availableStamps || 0) -
-                          selectedReward.stampsCost}{" "}
-                        sellos
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    Al confirmar, recibirás un código único que debes mostrar al
-                    negocio para recibir tu recompensa.
-                  </div>
-                </div>
-              )}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRedeemReward}>
-              Confirmar canje
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {/* Dialog de confirmación de canje */}
+      <RewardRedemptionDialog
+        isOpen={isRedeemDialogOpen}
+        onClose={() => setIsRedeemDialogOpen(false)}
+        reward={selectedReward}
+        clientCard={selectedClientCard as any}
+        onRedemptionSuccess={handleRedemptionSuccess}
+      />
 
-      {/* Diálogo de ticket de reclamo */}
-      <Dialog open={showTicketDialog} onOpenChange={setShowTicketDialog}>
-        <DialogContent className="max-w-full max-h-full">
-          <DialogHeader>
-            <DialogTitle className="text-center">
-              ¡Recompensa Canjeada!
-            </DialogTitle>
-          </DialogHeader>
-
-          {redemptionTicket && (
-            <div className="space-y-6">
-              {/* Información del ticket */}
-              <div className="bg-green-50 p-4 rounded-lg">
-                <div className="text-center mb-4">
-                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-2" />
-                  <h3 className="text-lg font-semibold text-green-800">
-                    {redemptionTicket.rewardName}
-                  </h3>
-                  <p className="text-green-700">
-                    {redemptionTicket.rewardDescription}
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Cliente:</span>
-                    <span className="font-medium">
-                      {redemptionTicket.clientName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Negocio:</span>
-                    <span className="font-medium">
-                      {redemptionTicket.businessName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Sellos gastados:</span>
-                    <span className="font-medium">
-                      {redemptionTicket.stampsSpent}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Fecha de canje:</span>
-                    <span className="font-medium">
-                      {new Date(redemptionTicket.redeemedAt).toLocaleDateString(
-                        "es-ES"
-                      )}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Código QR y código de barras */}
-              <div className="text-center space-y-4">
-                <div>
-                  <h4 className="font-semibold mb-2">Código de Reclamo</h4>
-                  <div className="bg-white border-2 border-dashed border-gray-300 p-4 rounded-lg">
-                    <div className="text-2xl font-mono font-bold tracking-wider text-gray-800 mb-2">
-                      {redemptionTicket.redemptionCode}
-                    </div>
-                    <Button
-                      onClick={() =>
-                        copyToClipboard(redemptionTicket.redemptionCode)
-                      }
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                    >
-                      {copySuccess ? (
-                        <>
-                          <CheckCircle className="w-4 h-4 mr-2" />
-                          Copiado
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4 mr-2" />
-                          Copiar código
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Temporizador de expiración */}
-                {redemptionTicket.expiresAt && (
-                  <div className="bg-yellow-50 p-3 rounded-lg">
-                    <div className="flex items-center justify-center gap-2 text-yellow-800">
-                      <Clock className="w-4 h-4" />
-                      <span className="text-sm font-medium">
-                        Expira en:{" "}
-                        {formatTimeRemaining(redemptionTicket.expiresAt)}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    <strong>Instrucciones:</strong> Muestra este código al
-                    personal del negocio para recibir tu recompensa.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Dialog del ticket de recompensa */}
+      <RewardTicketDialog
+        isOpen={isTicketDialogOpen}
+        onClose={() => setIsTicketDialogOpen(false)}
+        ticket={redemptionTicket}
+      />
     </div>
   );
 }

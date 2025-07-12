@@ -565,6 +565,8 @@ export const api = {
 
     // Obtener recompensas del negocio
     getAll: () => apiClient.get<IReward[]>("/rewards/my-rewards"),
+    getClientAvailableRewards: () =>
+      apiClient.get<IReward[]>("/rewards/client-available-rewards"),
 
     // Obtener recompensas de un negocio específico (para clientes)
     getByBusiness: (businessId: number) =>

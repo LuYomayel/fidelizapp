@@ -43,7 +43,7 @@ export default function CanjearCodigoPage() {
       const response = await api.clientCards.redeem({
         code: scannedCode || codigo,
       });
-      console.log("response", response);
+
       if (response.success) {
         setResultado({
           success: true,
