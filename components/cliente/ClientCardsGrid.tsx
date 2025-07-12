@@ -243,12 +243,6 @@ export default function ClientCardsGrid({
     console.log("🎯 ClientCardsGrid handleRedemptionSuccess called");
     console.log("🎫 Ticket received:", ticket);
 
-    // Primero actualizar las tarjetas para reflejar los nuevos sellos
-    if (onRewardRedeemed) {
-      console.log("🔄 Calling onRewardRedeemed first...");
-      onRewardRedeemed();
-    }
-
     // DESPUÉS mostrar el ticket en el nuevo dialog (con delay para que termine la recarga)
     setTimeout(() => {
       console.log("📋 Setting redemption ticket after reload...");
@@ -751,6 +745,11 @@ export default function ClientCardsGrid({
         onClose={() => {
           console.log("🔒 Closing ticket dialog from ClientCardsGrid");
           setIsTicketDialogOpen(false);
+          // Primero actualizar las tarjetas para reflejar los nuevos sellos
+          if (onRewardRedeemed) {
+            console.log("🔄 Calling onRewardRedeemed first...");
+            onRewardRedeemed();
+          }
         }}
         ticket={redemptionTicket}
       />

@@ -13,8 +13,11 @@ import { AuthenticatedLayout } from "../../components/shared/AuthenticatedLayout
 import { api } from "@/lib/api-client";
 import { QRScanner } from "../../components/cliente/QRScanner";
 import { QRCodeGenerator } from "../../components/cliente/QRCodeGenerator";
+import { useRouter } from "next/navigation";
+import { showToast } from "@/lib/toast";
 
 export default function CanjearCodigoPage() {
+  const router = useRouter();
   const [codigo, setCodigo] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -56,6 +59,15 @@ export default function CanjearCodigoPage() {
           }.`,
         });
         setCodigo(""); // Limpiar el campo después del éxito
+        showToast.success(
+          `Código canjeado exitosamente. Has ganado ${
+            response.data?.stampsEarned || 0
+          } ${
+            response.data?.stampsEarned && response.data?.stampsEarned > 1
+              ? "sellos"
+              : "sello"
+          }.`
+        );
       } else {
         setResultado({
           success: false,
@@ -70,6 +82,8 @@ export default function CanjearCodigoPage() {
         message: error.message || "Error al canjear el sello.",
       });
       setIsLoading(false);
+    } finally {
+      router.push("/cliente/mi-tarjeta");
     }
   };
 
