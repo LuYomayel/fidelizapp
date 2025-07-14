@@ -317,12 +317,12 @@ export default function BusinessProfilePage() {
         return;
       }
 
-      // Validar tamaño (max 2MB para evitar problemas en producción)
-      const maxSize = 2 * 1024 * 1024; // 2MB
+      // Validar tamaño (max 1MB para evitar problemas en producción)
+      const maxSize = 1 * 1024 * 1024; // 1MB
       if (file.size > maxSize) {
         setErrors((prev: any) => ({
           ...prev,
-          logo: `El archivo no debe superar los 2MB (actual: ${(
+          logo: `El archivo no debe superar los 1MB (actual: ${(
             file.size /
             1024 /
             1024
@@ -871,7 +871,7 @@ export default function BusinessProfilePage() {
                         <p className="pl-1">o arrastra y suelta</p>
                       </div>
                       <p className="text-xs text-gray-500">
-                        PNG, JPG, GIF, WebP hasta 2MB
+                        PNG, JPG, GIF, WebP hasta 1MB
                       </p>
                       {logoFile && (
                         <div className="space-y-2">

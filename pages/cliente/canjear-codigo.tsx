@@ -48,6 +48,9 @@ export default function CanjearCodigoPage() {
       });
 
       if (response.success) {
+        setTimeout(() => {
+          router.push("/cliente/mi-tarjeta");
+        }, 1500);
         setResultado({
           success: true,
           message: `¡Código canjeado exitosamente! Has ganado ${
@@ -82,8 +85,6 @@ export default function CanjearCodigoPage() {
         message: error.message || "Error al canjear el sello.",
       });
       setIsLoading(false);
-    } finally {
-      router.push("/cliente/mi-tarjeta");
     }
   };
 
