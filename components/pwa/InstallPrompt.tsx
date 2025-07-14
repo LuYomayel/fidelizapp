@@ -11,7 +11,10 @@ const InstallPrompt: React.FC = () => {
   }
 
   return (
-    <Card className="fixed bottom-4 left-4 right-4 z-50 p-4 bg-white border-2 border-blue-500 shadow-lg md:left-auto md:right-4 md:max-w-sm">
+    <Card
+      data-install-prompt
+      className="fixed bottom-4 left-4 right-4 z-50 p-4 bg-white border-2 border-blue-500 shadow-lg md:left-auto md:right-4 md:max-w-sm"
+    >
       <div className="flex items-center space-x-3">
         <div className="flex-shrink-0">
           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">

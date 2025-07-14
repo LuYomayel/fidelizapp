@@ -12,7 +12,7 @@ import PWAProvider from "../components/pwa/PWAProvider";
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
-      <PWAProvider>
+      <PWAProvider showDebugPanel={process.env.NODE_ENV === "development"}>
         <Head>
           <title>FidelizApp - Programa de Fidelización Digital</title>
           <meta

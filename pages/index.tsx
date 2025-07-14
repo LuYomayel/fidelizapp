@@ -9,15 +9,21 @@ import {
   UserPlus,
   ShoppingCart,
   Stamp,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import PublicRoute from "@/components/shared/PublicRoute";
+import usePWA from "@/hooks/usePWA";
+import PWAInfoCard from "@/components/pwa/PWAInfoCard";
 
 export default function LandingPage() {
   const [tipoAcceso, setTipoAcceso] = useState<"cliente" | "negocio" | null>(
     null
   );
+
+  // Hook PWA para instalación
+  const { isInstallable, isInstalled, install } = usePWA();
 
   return (
     <PublicRoute>
@@ -40,6 +46,28 @@ export default function LandingPage() {
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Botón de instalación PWA */}
+            {isInstallable && !isInstalled && (
+              <Button
+                onClick={install}
+                size="sm"
+                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium flex items-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Instalar App</span>
+                <span className="sm:hidden">Instalar</span>
+              </Button>
+            )}
+
+            {/* Indicador de app instalada */}
+            {isInstalled && (
+              <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="hidden sm:inline">App Instalada</span>
+                <span className="sm:hidden">✓</span>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row items-center space-x-2">
               <Button
                 asChild
@@ -65,7 +93,6 @@ export default function LandingPage() {
                 </Link>
               </Button>
             </div>
-            {/* Botón de registrarse eliminado */}
           </div>
         </header>
 
@@ -109,6 +136,35 @@ export default function LandingPage() {
                   </Link>
                 </Button>
               </div>
+
+              {/* Botón de instalación PWA prominente */}
+              {isInstallable && !isInstalled && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-3">
+                    ¿Prefieres usar la app nativa?
+                  </p>
+                  <Button
+                    onClick={install}
+                    size="lg"
+                    className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold flex items-center gap-2 mx-auto"
+                  >
+                    <Download className="w-5 h-5" />
+                    Instalar FidelizApp
+                  </Button>
+                </div>
+              )}
+
+              {/* Indicador de app instalada en hero */}
+              {isInstalled && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex items-center justify-center gap-2 text-green-600">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium">
+                      FidelizApp instalada ✓
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -295,6 +351,11 @@ export default function LandingPage() {
                 </Button>
               </div>
             </div>
+          </div>
+
+          {/* Información PWA */}
+          <div className="mt-12 max-w-2xl mx-auto">
+            <PWAInfoCard />
           </div>
         </section>
 
