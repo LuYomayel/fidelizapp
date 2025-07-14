@@ -33,10 +33,11 @@ import {
   IClientCard,
   IStampHistory,
   IRewardRedemption,
-} from "../../shared";
+  IRedemptionDashboard,
+} from "@shared";
 import { formatearNombreCompleto } from "@/utils";
 import { api, apiClient } from "@/lib/api-client";
-import { showToast } from "@/lib/toast";
+import { showToast, toast } from "@/lib/toast";
 
 // Componentes shadcn/ui
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProtectedRoute } from "../../components/shared/ProtectedRoute";
 import { AuthenticatedLayout } from "../../components/shared/AuthenticatedLayout";
 import HistorialSellos from "../../components/admin/HistorialSellos";
+import { DeliveredRedemptions } from "@/components/admin/DeliveredRedemptions";
 
 export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
@@ -75,6 +77,30 @@ export default function AdminDashboard() {
   const [retentionGrowth, setRetentionGrowth] = useState(0);
 
   const router = useRouter();
+
+  const [dashboard, setDashboard] = useState<IRedemptionDashboard | null>(null);
+
+  useEffect(() => {
+    loadDashboard();
+  }, []);
+
+  const loadDashboard = async (reload: boolean = false) => {
+    try {
+      const response = await api.rewards.getRedemptionDashboard();
+
+      if (response.success && response.data) {
+        setDashboard(response.data);
+        if (reload) {
+          toast.success("Historial de canjes cargado correctamente");
+        }
+      } else {
+        toast.error("Error al cargar el dashboard de reclamos");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Error al cargar los datos");
+    }
+  };
 
   useEffect(() => {
     cargarDatos();
@@ -284,10 +310,10 @@ export default function AdminDashboard() {
               <CardHeader className="text-center pb-0">
                 <CardTitle className="flex items-center justify-center gap-2">
                   <Zap className="w-5 h-5 text-blue-500" />
-                  Generar Código Rápido
+                  Generar Sello Rápido
                 </CardTitle>
                 <CardDescription>
-                  Genera un código de 1 sello de forma instantánea
+                  Genera un sello de forma instantánea
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center p-1">
@@ -306,7 +332,7 @@ export default function AdminDashboard() {
                     ) : (
                       <>
                         <Zap className="w-4 h-4" />
-                        Generar Código
+                        Generar Sello
                       </>
                     )}
                   </Button>
@@ -368,7 +394,7 @@ export default function AdminDashboard() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Tabs defaultValue="redemptions" className="w-full">
+              <Tabs defaultValue="stamps" className="w-full">
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="stamps">Historial de Sellos</TabsTrigger>
                   <TabsTrigger value="redemptions">
@@ -377,66 +403,10 @@ export default function AdminDashboard() {
                 </TabsList>
 
                 <TabsContent value="redemptions" className="space-y-4">
-                  {recentRedemptions.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Gift className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-500">
-                        No hay canjes registrados aún
-                      </p>
-                      <p className="text-sm text-gray-400 mt-2">
-                        Los canjes aparecerán aquí cuando los clientes
-                        intercambien sus sellos por recompensas
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {recentRedemptions.map((redemption) => (
-                        <div
-                          key={redemption.id}
-                          className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3">
-                              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                                <Gift className="w-5 h-5 text-purple-600" />
-                              </div>
-                              <div>
-                                <h4 className="font-medium text-gray-900">
-                                  {redemption.reward.name}
-                                </h4>
-                                <p className="text-sm text-gray-600">
-                                  {redemption.client.firstName}{" "}
-                                  {redemption.client.lastName}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {redemption.client.email}
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <Badge variant="secondary" className="mb-1">
-                              {redemption.stampsSpent} sellos
-                            </Badge>
-                            <p className="text-xs text-gray-500">
-                              {formatDate(redemption.redeemedAt)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {recentRedemptions.length > 0 && (
-                    <div className="mt-6 text-center">
-                      <Button
-                        variant="outline"
-                        onClick={() => router.push("/admin/recompensas")}
-                      >
-                        Ver todos los canjes
-                      </Button>
-                    </div>
-                  )}
+                  <DeliveredRedemptions
+                    dashboard={dashboard}
+                    onRefresh={() => loadDashboard(true)}
+                  />
                 </TabsContent>
 
                 <TabsContent value="stamps" className="space-y-4">

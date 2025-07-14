@@ -13,6 +13,7 @@ import {
   IBusiness,
 } from "@shared";
 import { api } from "../../lib/api-client";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Componentes shadcn/ui
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,7 @@ import {
 } from "@/components/ui/select";
 
 export default function RegistroNegocio() {
+  const { login } = useAuth();
   const [formData, setFormData] = useState<IBusiness>({
     businessName: "",
     email: "",
@@ -167,12 +169,27 @@ export default function RegistroNegocio() {
         throw new Error(response.message || "Error en el registro");
       }
 
-      setRegistroExitoso(true);
+      // Login automático con los datos recibidos
+      if (response.data && response.data.tokens && response.data.business) {
+        login({
+          tokens: response.data.tokens,
+          user: response.data.business,
+          userType: "admin",
+        });
 
-      // Redirigir después de un momento
-      setTimeout(() => {
-        router.push("/admin/login");
-      }, 3000);
+        setRegistroExitoso(true);
+
+        // Redirigir al dashboard después de un momento
+        setTimeout(() => {
+          router.push("/admin/dashboard");
+        }, 2000);
+      } else {
+        // Fallback si no vienen los tokens (compatibilidad)
+        setRegistroExitoso(true);
+        setTimeout(() => {
+          router.push("/admin/login");
+        }, 3000);
+      }
     } catch (error: any) {
       console.log(error);
       // @ts-ignore
@@ -258,12 +275,13 @@ export default function RegistroNegocio() {
                 </CardTitle>
 
                 <CardDescription className="mb-6">
-                  Tu negocio ha sido registrado correctamente. Serás redirigido
-                  al panel de administración en unos segundos...
+                  Tu negocio ha sido registrado correctamente y se ha iniciado
+                  sesión automáticamente. Serás redirigido al panel de
+                  administración en unos segundos...
                 </CardDescription>
 
                 <Button asChild>
-                  <Link href="/admin/login">Ir al Panel de Admin</Link>
+                  <Link href="/admin/dashboard">Ir al Panel de Admin</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -570,21 +588,53 @@ export default function RegistroNegocio() {
                     </div>
 
                     <div>
-                      <Label
-                        htmlFor="provincia"
-                        className="text-sm font-medium text-gray-700"
-                      >
-                        Provincia *
-                      </Label>
-                      <Input
-                        id="provincia"
+                      <Label htmlFor="province">Provincia *</Label>
+                      <Select
                         value={formData.province}
-                        onChange={(e) =>
-                          handleChange("province", e.target.value)
+                        onValueChange={(value) =>
+                          handleChange("province", value)
                         }
-                        className={errors.province ? "border-red-500" : ""}
-                        placeholder="CABA"
-                      />
+                      >
+                        <SelectTrigger
+                          className={errors.province ? "border-red-500" : ""}
+                        >
+                          <SelectValue placeholder="Selecciona la provincia" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Buenos Aires">
+                            Buenos Aires
+                          </SelectItem>
+                          <SelectItem value="CABA">
+                            Ciudad Autónoma de Buenos Aires
+                          </SelectItem>
+                          <SelectItem value="Catamarca">Catamarca</SelectItem>
+                          <SelectItem value="Chaco">Chaco</SelectItem>
+                          <SelectItem value="Chubut">Chubut</SelectItem>
+                          <SelectItem value="Córdoba">Córdoba</SelectItem>
+                          <SelectItem value="Corrientes">Corrientes</SelectItem>
+                          <SelectItem value="Entre Ríos">Entre Ríos</SelectItem>
+                          <SelectItem value="Formosa">Formosa</SelectItem>
+                          <SelectItem value="Jujuy">Jujuy</SelectItem>
+                          <SelectItem value="La Pampa">La Pampa</SelectItem>
+                          <SelectItem value="La Rioja">La Rioja</SelectItem>
+                          <SelectItem value="Mendoza">Mendoza</SelectItem>
+                          <SelectItem value="Misiones">Misiones</SelectItem>
+                          <SelectItem value="Neuquén">Neuquén</SelectItem>
+                          <SelectItem value="Río Negro">Río Negro</SelectItem>
+                          <SelectItem value="Salta">Salta</SelectItem>
+                          <SelectItem value="San Juan">San Juan</SelectItem>
+                          <SelectItem value="San Luis">San Luis</SelectItem>
+                          <SelectItem value="Santa Cruz">Santa Cruz</SelectItem>
+                          <SelectItem value="Santa Fe">Santa Fe</SelectItem>
+                          <SelectItem value="Santiago del Estero">
+                            Santiago del Estero
+                          </SelectItem>
+                          <SelectItem value="Tierra del Fuego">
+                            Tierra del Fuego
+                          </SelectItem>
+                          <SelectItem value="Tucumán">Tucumán</SelectItem>
+                        </SelectContent>
+                      </Select>
                       {errors.province && (
                         <p className="mt-1 text-sm text-red-600">
                           {errors.province}

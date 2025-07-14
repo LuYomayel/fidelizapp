@@ -11,22 +11,6 @@ export default function ClienteRecompensasPage() {
   return (
     <AuthenticatedLayout title="Recompensas">
       <div className="max-w-7xl mx-auto p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6">
-        {/*}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Recompensas</h1>
-            <p className="text-gray-600 mt-1">
-              Canjea tus sellos por increíbles recompensas
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <Gift className="w-5 h-5 text-blue-600" />
-            <span className="text-sm text-gray-600">
-              Sistema de recompensas
-            </span>
-          </div>
-        </div>
-        */}
         {/* Tabs para Recompensas e Historial */}
         <Tabs defaultValue="rewards" className="w-full">
           <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-1 mb-20 sm:mb-3 md:mb-4">
@@ -40,29 +24,38 @@ export default function ClienteRecompensasPage() {
               value="claims"
               className="text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-2"
             >
-              Reclamos
+              Mis Reclamos
             </TabsTrigger>
             <TabsTrigger
               value="history"
               className="text-xs sm:text-sm lg:text-base px-2 sm:px-3 lg:px-4 py-2"
             >
-              Mi Historial
+              Historial de Canjes
             </TabsTrigger>
           </TabsList>
 
           {/* Tab de Recompensas Disponibles */}
           <TabsContent value="rewards" className="space-y-4 sm:space-y-6">
-            <ClientRewardsList />
+            <ClientRewardsList
+              title="Recompensas Disponibles"
+              description="Canjea tus sellos por increíbles recompensas"
+            />
           </TabsContent>
 
           {/* Tab de Reclamos */}
           <TabsContent value="claims" className="space-y-4 sm:space-y-6">
-            <ClientClaims />
+            <ClientClaims
+              title="Mis Reclamos"
+              description="Historial de recompensas que has canjeado"
+            />
           </TabsContent>
 
           {/* Tab de Historial */}
           <TabsContent value="history" className="space-y-4 sm:space-y-6">
-            <ClientRedemptionHistory />
+            <ClientRedemptionHistory
+              title="Historial de Canjes de Sellos"
+              description="Historial completo de códigos de sellos que has canjeado"
+            />
           </TabsContent>
         </Tabs>
       </div>

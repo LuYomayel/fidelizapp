@@ -29,6 +29,7 @@ interface AuthContextProps extends AuthState {
   logout: () => void;
   isAuthenticated: boolean;
   isHydrated: boolean; // Nuevo estado para controlar hidratación
+  updateUser: (user: any) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -141,7 +142,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("auth-storage");
     }
-
+    console.log("currentUserType", currentUserType);
+    return;
     router.push(
       currentUserType === "admin" ? "/admin/login" : "/cliente/login"
     );
@@ -149,9 +151,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const isAuthenticated = !!(state.tokens && state.userType);
 
+  const updateUser = useCallback<AuthContextProps["updateUser"]>(
+    (user) => {
+      setState({ ...state, user });
+    },
+    [state]
+  );
+
   return (
     <AuthContext.Provider
-      value={{ ...state, login, logout, isAuthenticated, isHydrated }}
+      value={{
+        ...state,
+        login,
+        logout,
+        isAuthenticated,
+        isHydrated,
+        updateUser,
+      }}
     >
       {children}
     </AuthContext.Provider>

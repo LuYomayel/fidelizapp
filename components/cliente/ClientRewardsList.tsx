@@ -8,36 +8,28 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Filters } from "@/components/ui/filters";
+import { Pagination } from "@/components/ui/pagination";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import {
   Sparkles,
   Trophy,
   Clock,
   Package,
   Gift,
-  Search,
-  Copy,
   CheckCircle,
   Store,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
-import { IReward, IClientCard, IRedemptionTicket } from "@shared";
+import {
+  IReward,
+  IClientCard,
+  IRedemptionTicket,
+  RewardType,
+  IBusiness,
+} from "@shared";
+import { getImageUrl } from "@/hooks/useConfig";
 import {
   isRewardActive,
   isRewardExpired,
@@ -48,22 +40,55 @@ import RewardTicketDialog from "./RewardTicketDialog";
 
 interface ClientRewardsListProps {
   businessId?: number;
+  title?: string;
+  description?: string;
+  className?: string;
+}
+
+interface RewardFilters {
+  search: string;
+  businessId: string;
+  rewardType: string;
+  minStamps: string;
+  maxStamps: string;
+  availableOnly: boolean;
 }
 
 export default function ClientRewardsList({
   businessId,
+  title = "Recompensas Disponibles",
+  description = "Canjea tus sellos por increíbles recompensas",
+  className = "",
 }: ClientRewardsListProps) {
   const [rewards, setRewards] = useState<IReward[]>([]);
+  const [allRewards, setAllRewards] = useState<IReward[]>([]);
   const [clientCards, setClientCards] = useState<IClientCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  // Filtros
+  const [filters, setFilters] = useState<RewardFilters>({
+    search: "",
+    businessId: "",
+    rewardType: "",
+    minStamps: "",
+    maxStamps: "",
+    availableOnly: false,
+  });
+
+  // Dialogs
   const [isRedeemDialogOpen, setIsRedeemDialogOpen] = useState(false);
   const [isTicketDialogOpen, setIsTicketDialogOpen] = useState(false);
   const [redemptionTicket, setRedemptionTicket] = useState<any>(null);
   const [selectedReward, setSelectedReward] = useState<IReward | null>(null);
   const [selectedClientCard, setSelectedClientCard] =
     useState<IClientCard | null>(null);
+
+  // Business selection
   const [selectedBusiness, setSelectedBusiness] = useState<number | null>(null);
   const [businessRewardsCount, setBusinessRewardsCount] = useState<
     Record<number, number>
@@ -79,13 +104,21 @@ export default function ClientRewardsList({
       if (cardsResponse.success && cardsResponse.data) {
         setClientCards(cardsResponse.data);
 
-        // Cargar conteo de recompensas para cada negocio
+        // Cargar recompensas para cada negocio
+        const allBusinessRewards: IReward[] = [];
         const rewardsCount: Record<number, number> = {};
+
         for (const card of cardsResponse.data) {
           try {
             const businessId = Number(card.businessId);
             const rewardsResponse = await api.rewards.getByBusiness(businessId);
             if (rewardsResponse.success && rewardsResponse.data) {
+              const businessRewards = rewardsResponse.data.map((reward) => ({
+                ...reward,
+                businessId: businessId,
+                business: card.business || ({} as IBusiness),
+              }));
+              allBusinessRewards.push(...businessRewards);
               rewardsCount[businessId] = rewardsResponse.data.length;
             } else {
               rewardsCount[businessId] = 0;
@@ -94,19 +127,25 @@ export default function ClientRewardsList({
             rewardsCount[Number(card.businessId)] = 0;
           }
         }
+
+        setAllRewards(allBusinessRewards);
         setBusinessRewardsCount(rewardsCount);
 
-        // Si no hay businessId específico y hay tarjetas, seleccionar el primer negocio
-        if (!businessId && cardsResponse.data.length > 0) {
+        // Si hay businessId específico, filtrar por ese negocio
+        if (businessId) {
+          const businessRewards = allBusinessRewards.filter(
+            (reward) => reward.businessId === businessId
+          );
+          setRewards(businessRewards);
+        } else if (cardsResponse.data.length > 0) {
+          // Si no hay businessId específico, seleccionar el primer negocio
           const firstBusinessId = Number(cardsResponse.data[0].businessId);
           setSelectedBusiness(firstBusinessId);
-          await loadRewardsForBusiness(firstBusinessId);
+          const businessRewards = allBusinessRewards.filter(
+            (reward) => reward.businessId === firstBusinessId
+          );
+          setRewards(businessRewards);
         }
-      }
-
-      // Cargar recompensas del negocio específico
-      if (businessId) {
-        await loadRewardsForBusiness(businessId);
       }
     } catch (err) {
       setError("Error al cargar los datos");
@@ -116,45 +155,83 @@ export default function ClientRewardsList({
     }
   };
 
-  const loadRewardsForBusiness = async (businessId: number) => {
-    try {
-      const response = await api.rewards.getByBusiness(businessId);
-      if (response.success && response.data) {
-        setRewards(response.data);
-      }
-    } catch (err) {
-      console.error("Error loading rewards for business:", err);
-    }
-  };
-
   useEffect(() => {
     loadData();
   }, [businessId]);
 
-  // Efecto para recargar datos cuando cambie el negocio seleccionado
+  // Filtrar recompensas cuando cambian los filtros
   useEffect(() => {
-    if (selectedBusiness && !businessId) {
-      loadRewardsForBusiness(selectedBusiness);
+    let filtered = allRewards;
+
+    // Filtrar por negocio seleccionado
+    if (businessId) {
+      filtered = filtered.filter((reward) => reward.businessId === businessId);
+    } else if (selectedBusiness) {
+      filtered = filtered.filter(
+        (reward) => reward.businessId === selectedBusiness
+      );
     }
-  }, [selectedBusiness, businessId]);
+
+    // Filtrar por negocio específico en filtros
+    if (filters.businessId) {
+      filtered = filtered.filter(
+        (reward) => reward.businessId === Number(filters.businessId)
+      );
+    }
+
+    // Filtrar por búsqueda
+    if (filters.search) {
+      filtered = filtered.filter(
+        (reward) =>
+          reward.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+          reward.description
+            .toLowerCase()
+            .includes(filters.search.toLowerCase())
+      );
+    }
+
+    // Filtrar por tipo de recompensa
+    if (filters.rewardType) {
+      filtered = filtered.filter(
+        (reward) => reward.type === filters.rewardType
+      );
+    }
+
+    // Filtrar por stamps mínimos
+    if (filters.minStamps) {
+      filtered = filtered.filter(
+        (reward) => reward.stampsCost >= Number(filters.minStamps)
+      );
+    }
+
+    // Filtrar por stamps máximos
+    if (filters.maxStamps) {
+      filtered = filtered.filter(
+        (reward) => reward.stampsCost <= Number(filters.maxStamps)
+      );
+    }
+
+    // Filtrar solo disponibles
+    if (filters.availableOnly) {
+      filtered = filtered.filter(
+        (reward) =>
+          canRedeemReward(reward) &&
+          !isRewardExpired(reward) &&
+          !isRewardOutOfStock(reward)
+      );
+    }
+
+    setRewards(filtered);
+    setCurrentPage(1);
+  }, [filters, allRewards, selectedBusiness, businessId]);
 
   const handleRedemptionSuccess = async (ticket: IRedemptionTicket) => {
     console.log("🎯 ClientRewardsList handleRedemptionSuccess called");
-    console.log("🎫 Ticket received:", ticket);
-
-    // Primero recargar datos para actualizar sellos disponibles
-    console.log("🔄 Reloading data first...");
     await loadData();
 
-    // DESPUÉS mostrar el ticket en el nuevo dialog (con delay para que termine la recarga)
     setTimeout(() => {
-      console.log("📋 Setting redemption ticket after reload...");
       setRedemptionTicket(ticket);
-
-      console.log("🔓 Opening ticket dialog after reload...");
       setIsTicketDialogOpen(true);
-
-      console.log("🎫 Ticket dialog should be open now");
     }, 100);
   };
 
@@ -174,61 +251,76 @@ export default function ClientRewardsList({
     return clientCard && clientCard.availableStamps >= reward.stampsCost;
   };
 
-  // Filtrar recompensas por término de búsqueda y negocio seleccionado
-  const filteredRewards = rewards.filter((reward) => {
-    // Solo mostrar recompensas activas
-    if (!isRewardActive(reward)) {
-      return false;
-    }
+  const handleBusinessSelect = (businessId: number) => {
+    setSelectedBusiness(businessId);
+    setFilters((prev) => ({ ...prev, businessId: businessId.toString() }));
+  };
 
-    // Si no hay businessId específico, filtrar por negocio seleccionado
-    if (!businessId && selectedBusiness) {
-      if (reward.businessId !== selectedBusiness) return false;
-    }
+  const handleClearFilters = () => {
+    setFilters({
+      search: "",
+      businessId: "",
+      rewardType: "",
+      minStamps: "",
+      maxStamps: "",
+      availableOnly: false,
+    });
+  };
 
-    // Filtrar por término de búsqueda
-    if (!searchTerm) return true;
+  // Opciones para los filtros
+  const businessOptions = clientCards.map((card) => ({
+    value: card.businessId.toString(),
+    label: card.business?.businessName || "Negocio",
+    count: businessRewardsCount[Number(card.businessId)] || 0,
+  }));
 
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      reward.name.toLowerCase().includes(searchLower) ||
-      reward.description.toLowerCase().includes(searchLower) ||
-      reward.business.businessName.toLowerCase().includes(searchLower)
-    );
-  });
+  const rewardTypeOptions = [
+    { value: RewardType.DISCOUNT, label: "Descuento" },
+    { value: RewardType.FREE_PRODUCT, label: "Producto Gratis" },
+    { value: RewardType.OTHER, label: "Otro" },
+  ];
+
+  const activeFiltersCount = Object.values(filters).filter(Boolean).length;
+
+  // Paginación
+  const totalItems = rewards.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentRewards = rewards.slice(startIndex, endIndex);
 
   if (loading) {
     return (
-      <Card>
-        <CardContent className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-          <span className="ml-2 text-gray-600">Cargando recompensas...</span>
-        </CardContent>
-      </Card>
+      <LoadingState message="Cargando recompensas..." className={className} />
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardContent className="text-center py-12">
-          <div className="text-red-500 mb-4">⚠️</div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            Error al cargar las recompensas
-          </h3>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <Button onClick={loadData} variant="outline">
-            Reintentar
-          </Button>
-        </CardContent>
-      </Card>
+      <div className={`${className}`}>
+        <EmptyState
+          icon={Gift}
+          title="Error al cargar recompensas"
+          description={error}
+          action={{
+            label: "Reintentar",
+            onClick: loadData,
+          }}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 ${className}`}>
       {/* Header */}
-      {clientCards.length > 1 && (
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+        <p className="text-gray-600">{description}</p>
+      </div>
+
+      {/* Selector de negocio (solo si hay múltiples tarjetas y no hay businessId específico) */}
+      {clientCards.length > 1 && !businessId && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -246,19 +338,14 @@ export default function ClientRewardsList({
                       ? "border-blue-500 bg-blue-50 shadow-md"
                       : "border-gray-200 bg-white hover:border-blue-300 hover:bg-blue-50/30"
                   }`}
-                  onClick={() => {
-                    setSelectedBusiness(Number(card.businessId));
-                    loadRewardsForBusiness(Number(card.businessId));
-                  }}
+                  onClick={() => handleBusinessSelect(Number(card.businessId))}
                 >
-                  {/* Indicador de selección */}
                   {selectedBusiness === Number(card.businessId) && (
                     <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
                       <CheckCircle className="w-4 h-4 text-white" />
                     </div>
                   )}
 
-                  {/* Badge de recompensas disponibles */}
                   {businessRewardsCount[Number(card.businessId)] > 0 && (
                     <div className="absolute -top-2 -left-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
                       {businessRewardsCount[Number(card.businessId)]}{" "}
@@ -267,90 +354,41 @@ export default function ClientRewardsList({
                   )}
 
                   <div className="p-4">
-                    {/* Header con logo y nombre */}
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="relative">
-                        {/*
+                      {/* Logo del negocio */}
+                      <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center overflow-hidden">
                         {card.business?.logoPath ? (
                           <img
-                            src={`http://localhost:4000${card.business.logoPath}`}
+                            src={getImageUrl(card.business.logoPath) || ""}
                             alt={card.business.businessName}
-                            className="w-12 h-12 rounded-full object-cover border-2 border-gray-200"
+                            className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                            <Store className="w-6 h-6 text-white" />
-                          </div>
+                          <span className="text-blue-600 font-bold text-lg">
+                            {card.business?.businessName?.charAt(0) || "N"}
+                          </span>
                         )}
-                        */}
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                          <Store className="w-6 h-6 text-white" />
-                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-gray-900 truncate">
                           {card.business?.businessName || "Negocio"}
                         </h3>
                         <p className="text-xs text-gray-500">
-                          Nivel {card.level} •{" "}
                           {businessRewardsCount[Number(card.businessId)] || 0}{" "}
                           recompensas
                         </p>
                       </div>
                     </div>
 
-                    {/* Información de sellos */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
-                          Sellos disponibles:
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
+                        Sellos disponibles:
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <Trophy className="w-4 h-4 text-blue-500" />
+                        <span className="font-semibold text-blue-600">
+                          {card.availableStamps}
                         </span>
-                        <div className="flex items-center gap-1">
-                          <Trophy className="w-4 h-4 text-blue-500" />
-                          <span className="font-semibold text-blue-600">
-                            {card.availableStamps}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">
-                          Total acumulados:
-                        </span>
-                        <span className="font-medium text-gray-900">
-                          {card.totalStamps}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Usados:</span>
-                        <span className="font-medium text-gray-900">
-                          {card.usedStamps}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Barra de progreso visual */}
-                    <div className="mt-3">
-                      <div className="flex justify-between text-xs text-gray-500 mb-1">
-                        <span>Progreso</span>
-                        <span>
-                          {Math.round(
-                            (card.usedStamps / card.totalStamps) * 100
-                          )}
-                          %
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-gradient-to-r from-blue-400 to-blue-600 h-2 rounded-full transition-all duration-300"
-                          style={{
-                            width: `${Math.min(
-                              (card.usedStamps / card.totalStamps) * 100,
-                              100
-                            )}%`,
-                          }}
-                        ></div>
                       </div>
                     </div>
                   </div>
@@ -360,204 +398,209 @@ export default function ClientRewardsList({
           </CardContent>
         </Card>
       )}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">
-          {businessId ? "Recompensas Disponibles" : "Recompensas del Negocio"}
-        </h2>
-        <p className="text-gray-600">
-          {businessId
-            ? "Canjea tus sellos por increíbles recompensas"
-            : selectedBusiness
-            ? `Recompensas de ${
-                clientCards.find(
-                  (card) => Number(card.businessId) === selectedBusiness
-                )?.business?.businessName || "este negocio"
-              }`
-            : "Selecciona un negocio para ver sus recompensas"}
-        </p>
-      </div>
 
-      {/* Búsqueda */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-        <Input
-          placeholder="Buscar recompensas..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      {/* Filtros */}
+      <Filters
+        searchTerm={filters.search}
+        onSearchChange={(value) =>
+          setFilters((prev) => ({ ...prev, search: value }))
+        }
+        businessFilter={filters.businessId}
+        onBusinessChange={(value) =>
+          setFilters((prev) => ({ ...prev, businessId: value }))
+        }
+        businessOptions={businessOptions}
+        onRefresh={loadData}
+        onClearFilters={handleClearFilters}
+        isLoading={loading}
+        activeFiltersCount={activeFiltersCount}
+      />
 
       {/* Lista de recompensas */}
       {!businessId && !selectedBusiness ? (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Store className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Selecciona un negocio
-            </h3>
-            <p className="text-gray-600">
-              Elige un negocio de la lista arriba para ver sus recompensas
-              disponibles
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Store}
+          title="Selecciona un negocio"
+          description="Elige un negocio de la lista arriba para ver sus recompensas disponibles"
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredRewards.map((reward) => {
-            const clientCard = getClientCardForBusiness(reward.businessId);
-            const canRedeem = canRedeemReward(reward);
-            const isExpired = isRewardExpired(reward);
-            const isOutOfStock = isRewardOutOfStock(reward);
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentRewards.map((reward) => {
+              const clientCard = getClientCardForBusiness(reward.businessId);
+              const canRedeem = canRedeemReward(reward);
+              const isExpired = isRewardExpired(reward);
+              const isOutOfStock = isRewardOutOfStock(reward);
 
-            return (
-              <Card
-                key={reward.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-lg line-clamp-2">
-                        {reward.name}
-                      </CardTitle>
-                      <CardDescription className="mt-1 line-clamp-2">
-                        {reward.description}
-                      </CardDescription>
-                      {!businessId && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          {reward.business.businessName}
-                        </p>
+              return (
+                <Card
+                  key={reward.id}
+                  className="overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        {!businessId && (
+                          <div className="flex items-center gap-2 mb-2">
+                            {/* Logo del negocio */}
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center overflow-hidden">
+                              {reward.business?.logoPath ? (
+                                <img
+                                  src={
+                                    getImageUrl(reward.business.logoPath) || ""
+                                  }
+                                  alt={reward.business.businessName}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-blue-600 font-bold text-sm">
+                                  {reward.business?.businessName?.charAt(0) ||
+                                    "N"}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm font-medium text-gray-700">
+                              {reward.business?.businessName}
+                            </p>
+                          </div>
+                        )}
+                        <CardTitle className="text-lg line-clamp-2">
+                          {reward.name}
+                        </CardTitle>
+                        <CardDescription className="mt-1 line-clamp-2">
+                          {reward.description}
+                        </CardDescription>
+                      </div>
+                      {reward.image && (
+                        <img
+                          src={reward.image}
+                          alt={reward.name}
+                          className="w-16 h-16 rounded-lg object-cover ml-4"
+                        />
                       )}
                     </div>
-                    {reward.image && (
-                      <img
-                        src={reward.image}
-                        alt={reward.name}
-                        className="w-16 h-16 rounded-lg object-cover ml-4"
-                      />
-                    )}
-                  </div>
-                </CardHeader>
+                  </CardHeader>
 
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    {/* Costo en sellos */}
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600">
-                        Sellos requeridos:
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Sparkles className="w-4 h-4 text-yellow-500" />
-                        <span className="font-semibold">
-                          {reward.stampsCost} sellos
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Sellos disponibles */}
-                    {clientCard && (
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {/* Costo en sellos */}
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-gray-600">Tienes:</span>
+                        <span className="text-sm text-gray-600">
+                          Sellos requeridos:
+                        </span>
                         <div className="flex items-center gap-1">
-                          <Trophy className="w-4 h-4 text-blue-500" />
-                          <span
-                            className={`font-semibold ${
-                              canRedeem ? "text-green-600" : "text-red-600"
-                            }`}
-                          >
-                            {clientCard.availableStamps} sellos
+                          <Sparkles className="w-4 h-4 text-yellow-500" />
+                          <span className="font-semibold">
+                            {reward.stampsCost} sellos
                           </span>
                         </div>
                       </div>
-                    )}
 
-                    {/* Estados */}
-                    <div className="flex gap-2 flex-wrap">
-                      {isExpired && (
-                        <Badge variant="destructive" className="text-xs">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Expirada
-                        </Badge>
+                      {/* Sellos disponibles */}
+                      {clientCard && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-gray-600">Tienes:</span>
+                          <div className="flex items-center gap-1">
+                            <Trophy className="w-4 h-4 text-blue-500" />
+                            <span
+                              className={`font-semibold ${
+                                canRedeem ? "text-green-600" : "text-red-600"
+                              }`}
+                            >
+                              {clientCard.availableStamps} sellos
+                            </span>
+                          </div>
+                        </div>
                       )}
-                      {isOutOfStock && (
-                        <Badge variant="secondary" className="text-xs">
-                          <Package className="w-3 h-3 mr-1" />
-                          Sin stock
-                        </Badge>
-                      )}
-                      {reward.stock !== undefined &&
-                        reward.stock !== null &&
-                        reward.stock > 0 && (
-                          <Badge variant="outline" className="text-xs">
-                            Stock: {reward.stock}
+
+                      {/* Estados */}
+                      <div className="flex flex-wrap gap-1">
+                        {isExpired && (
+                          <Badge variant="destructive" className="text-xs">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Expirada
                           </Badge>
                         )}
-                    </div>
-
-                    {/* Condiciones especiales */}
-                    {reward.specialConditions && (
-                      <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-                        {reward.specialConditions}
+                        {isOutOfStock && (
+                          <Badge variant="destructive" className="text-xs">
+                            <Package className="w-3 h-3 mr-1" />
+                            Sin stock
+                          </Badge>
+                        )}
+                        {!isExpired && !isOutOfStock && canRedeem && (
+                          <Badge
+                            variant="default"
+                            className="text-xs bg-green-100 text-green-800"
+                          >
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Disponible
+                          </Badge>
+                        )}
                       </div>
-                    )}
 
-                    {/* Botón de canje */}
-                    <Button
-                      onClick={() => openRedeemDialog(reward)}
-                      disabled={!canRedeem || isExpired || isOutOfStock}
-                      className="w-full"
-                      variant={
-                        canRedeem && !isExpired && !isOutOfStock
-                          ? "default"
-                          : "outline"
-                      }
-                    >
-                      {!clientCard ? (
-                        "No tienes tarjeta"
-                      ) : !canRedeem ? (
-                        `Necesitas ${
-                          reward.stampsCost - clientCard.availableStamps
-                        } sellos más`
-                      ) : isExpired ? (
-                        "Expirada"
-                      ) : isOutOfStock ? (
-                        "Sin stock"
-                      ) : (
-                        <>
-                          <Gift className="w-4 h-4 mr-2" />
-                          Canjear
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
+                      <Button
+                        onClick={() => openRedeemDialog(reward)}
+                        disabled={!canRedeem || isExpired || isOutOfStock}
+                        className="w-full"
+                        variant={
+                          canRedeem && !isExpired && !isOutOfStock
+                            ? "default"
+                            : "outline"
+                        }
+                      >
+                        {!clientCard ? (
+                          "No tienes tarjeta"
+                        ) : !canRedeem ? (
+                          `Necesitas ${
+                            reward.stampsCost - clientCard.availableStamps
+                          } sellos más`
+                        ) : isExpired ? (
+                          "Expirada"
+                        ) : isOutOfStock ? (
+                          "Sin stock"
+                        ) : (
+                          <>
+                            <Gift className="w-4 h-4 mr-2" />
+                            Canjear
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Paginación */}
+          {totalItems > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalItems}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+              isLoading={loading}
+            />
+          )}
+
+          {/* Estado vacío */}
+          {currentRewards.length === 0 && (
+            <EmptyState
+              icon={Gift}
+              title="No hay recompensas disponibles"
+              description={
+                filters.search
+                  ? "No se encontraron recompensas con ese término de búsqueda"
+                  : "Este negocio aún no tiene recompensas configuradas"
+              }
+            />
+          )}
+        </>
       )}
 
-      {/* Mensaje si no hay recompensas */}
-      {filteredRewards.length === 0 && (businessId || selectedBusiness) && (
-        <Card className="text-center py-12">
-          <CardContent>
-            <Gift className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No hay recompensas disponibles
-            </h3>
-            <p className="text-gray-600">
-              {searchTerm
-                ? "No se encontraron recompensas con ese término de búsqueda"
-                : !selectedBusiness
-                ? "Selecciona un negocio para ver sus recompensas"
-                : "Este negocio aún no tiene recompensas configuradas"}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Dialog de confirmación de canje */}
+      {/* Dialogs */}
       <RewardRedemptionDialog
         isOpen={isRedeemDialogOpen}
         onClose={() => setIsRedeemDialogOpen(false)}
@@ -566,7 +609,6 @@ export default function ClientRewardsList({
         onRedemptionSuccess={handleRedemptionSuccess}
       />
 
-      {/* Dialog del ticket de recompensa */}
       <RewardTicketDialog
         isOpen={isTicketDialogOpen}
         onClose={() => setIsTicketDialogOpen(false)}

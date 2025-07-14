@@ -51,10 +51,15 @@ import {
   IClient,
   IClientCardWithReward,
   RewardType,
+  // Nuevas interfaces para empleados
+  IEmployee,
+  ICreateEmployeeDto,
+  IUpdateEmployeeDto,
+  IEmployeeFilters,
 } from "@shared";
 // Configuración de la API
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
-console.log("API_BASE_URL", API_BASE_URL);
+
 // Función helper para obtener el token desde el store
 function getAuthToken(): string | null {
   if (typeof window === "undefined") return null;
@@ -81,6 +86,10 @@ async function fetchAPI<T = unknown>(
   // Obtener token automáticamente
   const token = getAuthToken();
 
+  // Verificar si es un endpoint de login
+  const isLoginEndpoint =
+    endpoint.includes("/login") || endpoint.includes("/auth/");
+
   // Construir headers base - SIEMPRE definidos
   const isFormData = options.body instanceof FormData;
 
@@ -102,8 +111,9 @@ async function fetchAPI<T = unknown>(
 
   try {
     const response = await fetch(url, config);
-    // Si el token ha expirado, intentar refrescar
-    if (response.status === 401 && token) {
+
+    // Solo intentar refrescar si hay token Y no es un endpoint de login
+    if (response.status === 401 && token && !isLoginEndpoint) {
       const refreshSuccess = await refreshAuthToken();
 
       if (refreshSuccess) {
@@ -112,7 +122,7 @@ async function fetchAPI<T = unknown>(
         if (newToken && newToken !== token) {
           // Reconstruir headers completamente para el reintento
           const retryHeaders = {
-            "Content-Type": "application/json",
+            ...(isFormData ? {} : { "Content-Type": "application/json" }),
             Authorization: `Bearer ${newToken}`,
             ...options.headers, // Preservar headers originales
           };
@@ -147,10 +157,13 @@ async function fetchAPI<T = unknown>(
 
     if (!response.ok) {
       if (response.status === 401) {
-        // Token inválido o expirado definitivamente
-        console.warn("🚪 Sesión expirada, redirigiendo al login...");
-        clearAuthAndRedirect();
-        throw new Error("Sesión expirada");
+        // Solo redirigir si hay token Y no es un endpoint de login
+        if (token && !isLoginEndpoint) {
+          console.warn("🚪 Sesión expirada, redirigiendo al login...");
+          clearAuthAndRedirect();
+          throw new Error("Sesión expirada");
+        }
+        // Si no hay token O es login endpoint, no redirigir - solo devolver error
       }
 
       // Leer el JSON de error formateado por HttpExceptionFilter
@@ -179,11 +192,16 @@ async function fetchAPI<T = unknown>(
       }
     }
 
-    const data = await response.json();
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error(`❌ Error en petición a ${url}:`, error);
-    throw error;
+    // Re-throw los errores que ya están manejados
+    if (error instanceof Error) {
+      throw error;
+    }
+
+    // Manejo genérico de errores de red
+    console.error(`❌ Error de red en ${endpoint}:`, error);
+    throw new Error("Error de conexión. Verifica tu conexión a internet.");
   }
 }
 
@@ -249,7 +267,6 @@ function clearAuthAndRedirect(): void {
       const parsed = JSON.parse(authStorage);
       const userType = parsed?.state?.userType;
       localStorage.removeItem("auth-storage");
-
       // Redirigir según el tipo de usuario
       if (userType === "client") {
         window.location.href = "/cliente/login";
@@ -297,14 +314,24 @@ export const apiClient = {
   put: <T = unknown>(endpoint: string, data?: unknown, headers?: unknown) =>
     fetchAPI<ApiResponse<T>>(endpoint, {
       method: "PUT",
-      body: data ? JSON.stringify(data) : undefined,
+      body:
+        data instanceof FormData
+          ? (data as FormData)
+          : data
+          ? JSON.stringify(data)
+          : undefined,
       headers: headers as any,
     }),
 
   patch: <T = unknown>(endpoint: string, data?: unknown, headers?: unknown) =>
     fetchAPI<ApiResponse<T>>(endpoint, {
       method: "PATCH",
-      body: data ? JSON.stringify(data) : undefined,
+      body:
+        data instanceof FormData
+          ? (data as FormData)
+          : data
+          ? JSON.stringify(data)
+          : undefined,
       headers: headers as any,
     }),
 
@@ -565,8 +592,6 @@ export const api = {
 
     // Obtener recompensas del negocio
     getAll: () => apiClient.get<IReward[]>("/rewards/my-rewards"),
-    getClientAvailableRewards: () =>
-      apiClient.get<IReward[]>("/rewards/client-available-rewards"),
 
     // Obtener recompensas de un negocio específico (para clientes)
     getByBusiness: (businessId: number) =>
@@ -606,13 +631,13 @@ export const api = {
     // Marcar recompensa como entregada
     deliverRedemption: (
       redemptionId: number,
-      deliveredBy: string,
+      employeeId: number,
       notes?: string
     ) =>
       apiClient.patch<IRewardRedemption>(
         `/rewards/redemptions/${redemptionId}/deliver`,
         {
-          deliveredBy,
+          employeeId,
           notes,
         }
       ),
@@ -697,6 +722,47 @@ export const api = {
 
     // Expirar códigos vencidos (tarea administrativa)
     expireOldRedemptions: () => apiClient.post("/rewards/expire-old"),
+  },
+  employees: {
+    // Obtener todos los empleados del negocio
+    getAll: (filters?: IEmployeeFilters) => {
+      const queryParams = new URLSearchParams();
+
+      if (filters?.page) queryParams.append("page", filters.page.toString());
+      if (filters?.limit) queryParams.append("limit", filters.limit.toString());
+      if (filters?.search) queryParams.append("search", filters.search);
+      if (filters?.isDefault !== undefined)
+        queryParams.append("isDefault", filters.isDefault.toString());
+
+      const queryString = queryParams.toString();
+      return apiClient.get<{
+        employees: IEmployee[];
+        total: number;
+        page: number;
+        totalPages: number;
+      }>(`/employees${queryString ? `?${queryString}` : ""}`);
+    },
+
+    // Obtener empleado por ID
+    getById: (id: number) => apiClient.get<IEmployee>(`/employees/${id}`),
+
+    // Crear empleado
+    create: (data: ICreateEmployeeDto) =>
+      apiClient.post<IEmployee>("/employees", data),
+
+    // Actualizar empleado
+    update: (id: number, data: IUpdateEmployeeDto) =>
+      apiClient.put<IEmployee>(`/employees/${id}`, data),
+
+    // Eliminar empleado
+    delete: (id: number) => apiClient.delete(`/employees/${id}`),
+
+    // Obtener empleado por defecto
+    getDefault: () => apiClient.get<IEmployee | null>("/employees/default"),
+
+    // Establecer empleado como defecto
+    setDefault: (id: number) =>
+      apiClient.post<IEmployee>(`/employees/${id}/set-default`),
   },
 };
 

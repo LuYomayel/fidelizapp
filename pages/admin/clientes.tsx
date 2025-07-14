@@ -35,6 +35,10 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Filters } from "@/components/ui/filters";
+import { Pagination } from "@/components/ui/pagination";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import { ProtectedRoute } from "../../components/shared/ProtectedRoute";
 import { AuthenticatedLayout } from "../../components/shared/AuthenticatedLayout";
 
@@ -47,11 +51,32 @@ export default function ClientesPage() {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+
+  // Estados para filtros
+  const [statusFilter, setStatusFilter] = useState("");
+
   const router = useRouter();
 
   useEffect(() => {
     cargarClientes();
-  }, []);
+  }, [currentPage, itemsPerPage, statusFilter]);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const timeoutId = setTimeout(() => {
+        setCurrentPage(1);
+        cargarClientes();
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      setCurrentPage(1);
+      cargarClientes();
+    }
+  }, [searchTerm]);
 
   useEffect(() => {
     // Si no hay término de búsqueda, mostrar todos los clientes
@@ -67,7 +92,6 @@ export default function ClientesPage() {
         client.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         client.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    console.log("filtered", filtered);
     setFilteredClients(filtered);
   }, [searchTerm, clients]);
 
@@ -80,9 +104,9 @@ export default function ClientesPage() {
 
       if (response.success && response.data) {
         // El endpoint devuelve directamente el array de clientes
-        console.log("response.data", response.data);
         setClients(response.data.clients || []);
         setTotalClients(response.data.total || 0);
+        setTotalPages(Math.ceil((response.data.total || 0) / itemsPerPage));
       } else {
         setError("Error al cargar los clientes");
       }
@@ -126,15 +150,27 @@ export default function ClientesPage() {
     return "Nuevo";
   };
 
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("");
+    setCurrentPage(1);
+  };
+
+  const statusOptions = [
+    { value: "active", label: "Activos" },
+    { value: "inactive", label: "Inactivos" },
+    { value: "vip", label: "VIP" },
+    { value: "frequent", label: "Frecuentes" },
+  ];
+
+  const activeFiltersCount = [searchTerm, statusFilter].filter(Boolean).length;
+
   if (isLoading) {
     return (
       <ProtectedRoute allowedUserTypes={["admin"]}>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Cargando clientes...</p>
-          </div>
-        </div>
+        <AuthenticatedLayout>
+          <LoadingState message="Cargando clientes..." />
+        </AuthenticatedLayout>
       </ProtectedRoute>
     );
   }
@@ -266,32 +302,22 @@ export default function ClientesPage() {
             */}
           </div>
 
-          {/* Búsqueda, filtros y controles de vista */}
+          {/* Filtros */}
           <Card className="mb-8">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="w-5 h-5" />
-                Buscar Clientes
-              </CardTitle>
-              <CardDescription>
-                Encuentra clientes por nombre o email
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="flex gap-4 w-full sm:w-auto">
-                  <div className="flex-1 sm:w-64">
-                    <Input
-                      placeholder="Buscar por nombre o email..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full"
-                    />
-                  </div>
-                  <Button variant="outline" className="flex items-center gap-2">
-                    <Filter className="w-4 h-4" />
-                    Filtros
-                  </Button>
+            <CardContent className="p-6">
+              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between mb-4">
+                <div className="flex-1">
+                  <Filters
+                    searchTerm={searchTerm}
+                    onSearchChange={setSearchTerm}
+                    //statusFilter={statusFilter}
+                    //onStatusChange={setStatusFilter}
+                    //statusOptions={statusOptions}
+                    onRefresh={cargarClientes}
+                    //onClearFilters={handleClearFilters}
+                    isLoading={isLoading}
+                    //activeFiltersCount={activeFiltersCount}
+                  />
                 </div>
 
                 {/* Controles de vista */}
@@ -324,27 +350,27 @@ export default function ClientesPage() {
 
           {/* Lista de clientes */}
           {filteredClients.length === 0 ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <div className="text-6xl mb-4">👥</div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {searchTerm
-                    ? "No se encontraron clientes"
-                    : "No hay clientes aún"}
-                </h3>
-                <p className="text-gray-600 mb-6">
-                  {searchTerm
-                    ? "Intenta con otros términos de búsqueda"
-                    : "Los clientes aparecerán aquí cuando canjeen su primer código"}
-                </p>
-                {!searchTerm && (
-                  <Button onClick={() => router.push("/admin/dashboard")}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Generar Código
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
+            <EmptyState
+              icon={Users}
+              title={
+                searchTerm
+                  ? "No se encontraron clientes"
+                  : "No hay clientes aún"
+              }
+              description={
+                searchTerm
+                  ? "Intenta con otros términos de búsqueda"
+                  : "Los clientes aparecerán aquí cuando canjeen su primer código"
+              }
+              action={
+                !searchTerm
+                  ? {
+                      label: "Generar Código",
+                      onClick: () => router.push("/admin/dashboard"),
+                    }
+                  : undefined
+              }
+            />
           ) : viewMode === "cards" ? (
             /* Vista de Cards */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -580,6 +606,21 @@ export default function ClientesPage() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Paginación */}
+          {filteredClients.length > 0 && (
+            <div className="mt-8">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalClients}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+                isLoading={isLoading}
+              />
             </div>
           )}
         </div>

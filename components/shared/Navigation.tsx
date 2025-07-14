@@ -32,7 +32,6 @@ export default function Navigation({
     } else {
       return user?.businessName;
     }
-    return "Usuario";
   };
 
   const getUserTypeLabel = () => {

@@ -64,6 +64,7 @@ export default function ClienteLogin() {
         email,
         password,
       };
+
       const response = (await api.clients.login(loginClientDto)) as {
         success: boolean;
         message: string;
@@ -71,9 +72,11 @@ export default function ClienteLogin() {
         requiresVerification?: boolean;
         email?: string;
       };
-      //console.log("response", response);
+
       //
       if (response.success) {
+        console.log("response.data.client", response.data.client);
+
         // Usar el AuthContext para manejar la autenticación
         login({
           userType: "client",

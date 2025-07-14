@@ -69,15 +69,7 @@ export default function ClientCardsGrid({
     null
   );
 
-  // Debug useEffect para monitorear estados
-  useEffect(() => {
-    console.log("📊 ClientCardsGrid state monitor:");
-    console.log("- isRedeemDialogOpen:", isRedeemDialogOpen);
-    console.log("- isTicketDialogOpen:", isTicketDialogOpen);
-    console.log("- redemptionTicket:", redemptionTicket);
-    console.log("- selectedReward:", selectedReward?.name);
-    console.log("- selectedCard:", selectedCard?.id);
-  }, [
+  useEffect(() => {}, [
     isRedeemDialogOpen,
     isTicketDialogOpen,
     redemptionTicket,
@@ -240,18 +232,9 @@ export default function ClientCardsGrid({
   };
 
   const handleRedemptionSuccess = (ticket: any) => {
-    console.log("🎯 ClientCardsGrid handleRedemptionSuccess called");
-    console.log("🎫 Ticket received:", ticket);
-
-    // DESPUÉS mostrar el ticket en el nuevo dialog (con delay para que termine la recarga)
     setTimeout(() => {
-      console.log("📋 Setting redemption ticket after reload...");
       setRedemptionTicket(ticket);
-
-      console.log("🔓 Opening ticket dialog after reload...");
       setIsTicketDialogOpen(true);
-
-      console.log("🎫 Ticket dialog should be open now");
     }, 100);
   };
 
@@ -743,11 +726,9 @@ export default function ClientCardsGrid({
       <RewardTicketDialog
         isOpen={isTicketDialogOpen}
         onClose={() => {
-          console.log("🔒 Closing ticket dialog from ClientCardsGrid");
           setIsTicketDialogOpen(false);
           // Primero actualizar las tarjetas para reflejar los nuevos sellos
           if (onRewardRedeemed) {
-            console.log("🔄 Calling onRewardRedeemed first...");
             onRewardRedeemed();
           }
         }}

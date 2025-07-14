@@ -33,6 +33,7 @@ export function AuthenticatedLayout({
   const adminMenuItems = [
     { name: "Dashboard", icon: Home, href: "/admin/dashboard" },
     { name: "Clientes", icon: Users, href: "/admin/clientes" },
+    { name: "Empleados", icon: Users, href: "/admin/empleados" },
     { name: "Recompensas", icon: Gift, href: "/admin/recompensas" },
     { name: "Canjes", icon: Package, href: "/admin/canjes" },
     /* Comentado para MVP - Funcionalidades avanzadas
@@ -49,7 +50,7 @@ export function AuthenticatedLayout({
   const clientMenuItems = [
     { name: "Mi Tarjeta", icon: CreditCard, href: "/cliente/mi-tarjeta" },
     { name: "Canjear Código", icon: Ticket, href: "/cliente/canjear-codigo" },
-    { name: "Recompensas", icon: Gift, href: "/cliente/recompensas" },
+    //{ name: "Recompensas", icon: Gift, href: "/cliente/recompensas" },
   ];
 
   const menuItems = userType === "admin" ? adminMenuItems : clientMenuItems;

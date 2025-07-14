@@ -16,6 +16,7 @@ import ClientRewardsList from "@/components/cliente/ClientRewardsList";
 import ClientRedemptionHistory from "@/components/cliente/ClientRedemptionHistory";
 import ClientGeneralHistory from "@/components/cliente/ClientGeneralHistory";
 import ClientCardsGrid from "@/components/cliente/ClientCardsGrid";
+import ClientClaims from "@/components/cliente/ClientClaims";
 
 export default function MiTarjetaPage() {
   const router = useRouter();
@@ -141,11 +142,11 @@ export default function MiTarjetaPage() {
             </div>
 
             <Tabs defaultValue="cards" className="w-full">
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="cards">🎫 Mis Tarjetas</TabsTrigger>
-                {/*<TabsTrigger value="history">📜 Historial</TabsTrigger>*/}
-                <TabsTrigger value="general">📊 General</TabsTrigger>
+                <TabsTrigger value="stamps">📊 Sellos canjeados</TabsTrigger>
                 <TabsTrigger value="rewards">🎁 Recompensas</TabsTrigger>
+                <TabsTrigger value="claims">📋 Reclamos</TabsTrigger>
               </TabsList>
 
               <TabsContent value="cards" className="mt-6">
@@ -157,27 +158,25 @@ export default function MiTarjetaPage() {
                 />
               </TabsContent>
 
-              {/*
-              <TabsContent value="history" className="mt-6">
-                {selectedCard ? (
-                  <ClientRedemptionHistory
-                    businessId={selectedCard.businessId?.toString()}
-                    businessName={selectedCard.business?.businessName}
-                  />
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    Selecciona una tarjeta para ver su historial
-                  </div>
-                )}
-              </TabsContent>
-              */}
-
-              <TabsContent value="general" className="mt-6">
-                <ClientGeneralHistory />
+              <TabsContent value="stamps" className="mt-6">
+                <ClientRedemptionHistory
+                  title="Historial de Canjes de Sellos"
+                  description="Historial completo de códigos de sellos que has canjeado"
+                />
               </TabsContent>
 
               <TabsContent value="rewards" className="mt-6">
-                <ClientRewardsList />
+                <ClientRewardsList
+                  title="Recompensas de Mis Negocios"
+                  description="Todas las recompensas disponibles en los negocios donde tienes tarjetas"
+                />
+              </TabsContent>
+
+              <TabsContent value="claims" className="mt-6">
+                <ClientClaims
+                  title="Mis Reclamos de Recompensas"
+                  description="Historial completo de recompensas que has canjeado"
+                />
               </TabsContent>
             </Tabs>
           </div>

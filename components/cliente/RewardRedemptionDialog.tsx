@@ -27,56 +27,28 @@ export default function RewardRedemptionDialog({
   clientCard,
   onRedemptionSuccess,
 }: RewardRedemptionDialogProps) {
-  console.log("🎬 RewardRedemptionDialog render");
-  console.log("🔍 Props received:", {
-    isOpen,
-    reward: reward?.name,
-    clientCard: clientCard?.id,
-    hasOnRedemptionSuccess: !!onRedemptionSuccess,
-  });
-
   const [isRedeeming, setIsRedeeming] = useState(false);
 
   const handleRedeemReward = async () => {
-    console.log("🚀 handleRedeemReward initiated");
-    console.log("🔍 Datos:", {
-      reward: reward?.name,
-      clientCard: clientCard?.id,
-      isRedeeming,
-    });
-
     if (!reward || !clientCard || isRedeeming) {
-      console.log("❌ Early return - missing data or already redeeming");
       return;
     }
 
     setIsRedeeming(true);
     try {
-      console.log("📡 Calling API redeem...");
       const response = await api.rewards.redeem(reward.id, reward.businessId);
-      console.log("📡 API Response:", response);
 
       if (response.success && response.data) {
-        console.log("✅ API Success - ticket received:", response.data);
-
-        // Cerrar este dialog
-        console.log("🔄 Closing confirmation dialog...");
         onClose();
 
         // Llamar al callback con el ticket para que el componente padre abra el RewardTicketDialog
         if (onRedemptionSuccess) {
-          console.log("🎫 Calling onRedemptionSuccess with ticket...");
           onRedemptionSuccess(response.data);
-        } else {
-          console.log("❌ No onRedemptionSuccess callback found!");
         }
       } else {
-        console.log("❌ API failed:", response);
       }
     } catch (err) {
-      console.error("💥 Error redeeming reward:", err);
     } finally {
-      console.log("🏁 Setting isRedeeming to false");
       setIsRedeeming(false);
     }
   };

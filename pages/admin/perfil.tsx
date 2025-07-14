@@ -27,6 +27,8 @@ import {
   Copy,
 } from "lucide-react";
 import { api } from "@/lib/api-client";
+import { showToast } from "@/lib/toast";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   BusinessSize,
   BusinessType,
@@ -34,8 +36,10 @@ import {
   IBusinessQRData,
 } from "@/shared";
 import { validarEmail, validarTelefono } from "@/utils";
+import { getImageUrl } from "@/hooks/useConfig";
 
 export default function BusinessProfilePage() {
+  const { user, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState("");
@@ -73,7 +77,6 @@ export default function BusinessProfilePage() {
   const loadBusiness = async () => {
     const response = await api.business.getProfile();
     if (response.success) {
-      console.log(response.data);
       setBusiness(response.data || null);
       setFormData({
         businessName: response.data?.businessName || "",
@@ -96,9 +99,6 @@ export default function BusinessProfilePage() {
       });
       // Cargar customType si existe
       setCustomType(response.data?.customType || "");
-      console.log(
-        `${process.env.NEXT_PUBLIC_API_URL}/uploads/${response.data?.logoPath}`
-      );
     } else {
       setError(response.message || "Error al cargar el negocio");
     }
@@ -263,6 +263,17 @@ export default function BusinessProfilePage() {
 
       if (response.success) {
         setResult(response.message || "Perfil actualizado correctamente");
+        showToast.success("Perfil actualizado correctamente");
+
+        // Actualizar el usuario en el contexto de autenticación
+        if (user && response.data) {
+          const updatedUser = {
+            ...user,
+            businessName: response.data.businessName,
+          };
+          updateUser(updatedUser);
+        }
+
         setTimeout(() => {
           setResult("");
         }, 3000);
@@ -272,12 +283,16 @@ export default function BusinessProfilePage() {
         setLogoFile(null);
       } else {
         setError(response.message || "Error al actualizar el perfil");
+        showToast.error(response.message || "Error al actualizar el perfil");
       }
     } catch (error: any) {
       console.error("Error al actualizar el perfil:", error);
-      setError(
-        error instanceof Error ? error.message : "Error al actualizar el perfil"
-      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Error al actualizar el perfil";
+      setError(errorMessage);
+      showToast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -285,7 +300,6 @@ export default function BusinessProfilePage() {
 
   const handleFileChangeLogo = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    console.log(file);
     if (file) {
       // Validar tipo de archivo
       const allowedTypes = [
@@ -366,6 +380,8 @@ export default function BusinessProfilePage() {
     try {
       const formData = new FormData();
       formData.append("logo", logoFile);
+
+      // Debug: Verificar que el FormData contiene el archivo
 
       const response = await api.business.updateLogo(formData);
       if (!response.success) {
@@ -455,152 +471,450 @@ export default function BusinessProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building className="h-5 w-5" />
-                Información del Negocio
+                Perfil del Negocio
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="businessName">Nombre del Negocio *</Label>
-                  <Input
-                    id="businessName"
-                    placeholder="Nombre de tu negocio"
-                    value={formData.businessName}
-                    onChange={(e) =>
-                      handleChange("businessName", e.target.value)
-                    }
-                    className={errors.businessName ? "border-red-500" : ""}
-                  />
-                  {errors.businessName && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.businessName}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="email">Email *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="correo@negocio.com"
-                    value={formData.email}
-                    disabled
-                    onChange={(e) => handleChange("email", e.target.value)}
-                    className={errors.email ? "border-red-500" : ""}
-                  />
-                  {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="internalPhone">Teléfono Interno &nbsp;</Label>
-                  <small className="text-gray-500">
-                    (Usado internamente por Fidelizapp – puede ser el mismo que
-                    el externo)
-                  </small>
-                  <Input
-                    id="internalPhone"
-                    placeholder="Teléfono interno"
-                    value={formData.internalPhone}
-                    onChange={(e) =>
-                      handleChange("internalPhone", e.target.value)
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="externalPhone">
-                    Teléfono Externo (Clientes) *
-                  </Label>
-                  <Input
-                    id="externalPhone"
-                    placeholder="Teléfono para clientes"
-                    value={formData.externalPhone}
-                    onChange={(e) =>
-                      handleChange("externalPhone", e.target.value)
-                    }
-                    className={errors.externalPhone ? "border-red-500" : ""}
-                  />
-                  {errors.externalPhone && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.externalPhone}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Tamaño del Negocio
-                  </Label>
-                  <Select
-                    value={formData.size}
-                    onValueChange={(value) => handleChange("size", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el tamaño" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={BusinessSize.SMALL}>
-                        De 1 - 5 sucursales
-                      </SelectItem>
-                      <SelectItem value={BusinessSize.MEDIUM}>
-                        De 5 - 10 sucursales
-                      </SelectItem>
-                      <SelectItem value={BusinessSize.LARGE}>
-                        +10 sucursales
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">
-                    Tipo de Negocio
-                  </Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(value) => handleChange("type", value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecciona el tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={BusinessType.CAFETERIA}>
-                        Cafetería
-                      </SelectItem>
-                      <SelectItem value={BusinessType.RESTAURANT}>
-                        Restaurant
-                      </SelectItem>
-                      <SelectItem value={BusinessType.PELUQUERIA}>
-                        Peluquería
-                      </SelectItem>
-                      <SelectItem value={BusinessType.MANICURA}>
-                        Manicura
-                      </SelectItem>
-                      <SelectItem value={BusinessType.OTRO}>Otro</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {formData.type === BusinessType.OTRO && (
-                  <div className="md:col-span-2">
-                    <Label
-                      htmlFor="tipoOtro"
-                      className="text-sm font-medium text-gray-700"
-                    >
-                      Especifica el tipo *
-                    </Label>
+            <CardContent className="space-y-6">
+              {/* Información Básica */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                  Información Básica
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="businessName">Nombre del Negocio *</Label>
                     <Input
-                      id="tipoOtro"
-                      value={customType}
-                      onChange={(e) => setCustomType(e.target.value)}
-                      className={errors.customType ? "border-red-500" : ""}
-                      placeholder="Describe tu tipo de negocio"
+                      id="businessName"
+                      placeholder="Nombre de tu negocio"
+                      value={formData.businessName}
+                      onChange={(e) =>
+                        handleChange("businessName", e.target.value)
+                      }
+                      className={errors.businessName ? "border-red-500" : ""}
                     />
-                    {errors.customType && (
+                    {errors.businessName && (
                       <p className="mt-1 text-sm text-red-600">
-                        {errors.customType}
+                        {errors.businessName}
                       </p>
                     )}
                   </div>
-                )}
+                  <div>
+                    <Label htmlFor="email">Email *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="correo@negocio.com"
+                      value={formData.email}
+                      disabled
+                      onChange={(e) => handleChange("email", e.target.value)}
+                      className={errors.email ? "border-red-500" : ""}
+                    />
+                    {errors.email && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.email}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="internalPhone">
+                      Teléfono Interno &nbsp;
+                    </Label>
+                    <small className="text-gray-500">
+                      (Usado internamente por Fidelizapp – puede ser el mismo
+                      que el externo)
+                    </small>
+                    <Input
+                      id="internalPhone"
+                      placeholder="Teléfono interno"
+                      value={formData.internalPhone}
+                      onChange={(e) =>
+                        handleChange("internalPhone", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="externalPhone">
+                      Teléfono Externo (Clientes) *
+                    </Label>
+                    <Input
+                      id="externalPhone"
+                      placeholder="Teléfono para clientes"
+                      value={formData.externalPhone}
+                      onChange={(e) =>
+                        handleChange("externalPhone", e.target.value)
+                      }
+                      className={errors.externalPhone ? "border-red-500" : ""}
+                    />
+                    {errors.externalPhone && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.externalPhone}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Tamaño del Negocio
+                    </Label>
+                    <Select
+                      value={formData.size}
+                      onValueChange={(value) => handleChange("size", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona el tamaño" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={BusinessSize.SMALL}>
+                          De 1 - 5 sucursales
+                        </SelectItem>
+                        <SelectItem value={BusinessSize.MEDIUM}>
+                          De 5 - 10 sucursales
+                        </SelectItem>
+                        <SelectItem value={BusinessSize.LARGE}>
+                          +10 sucursales
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700">
+                      Tipo de Negocio
+                    </Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={(value) => handleChange("type", value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecciona el tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={BusinessType.CAFETERIA}>
+                          Cafetería
+                        </SelectItem>
+                        <SelectItem value={BusinessType.RESTAURANT}>
+                          Restaurant
+                        </SelectItem>
+                        <SelectItem value={BusinessType.PELUQUERIA}>
+                          Peluquería
+                        </SelectItem>
+                        <SelectItem value={BusinessType.MANICURA}>
+                          Manicura
+                        </SelectItem>
+                        <SelectItem value={BusinessType.OTRO}>Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.type === BusinessType.OTRO && (
+                    <div className="md:col-span-2">
+                      <Label
+                        htmlFor="tipoOtro"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Especifica el tipo *
+                      </Label>
+                      <Input
+                        id="tipoOtro"
+                        value={customType}
+                        onChange={(e) => setCustomType(e.target.value)}
+                        className={errors.customType ? "border-red-500" : ""}
+                        placeholder="Describe tu tipo de negocio"
+                      />
+                      {errors.customType && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.customType}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Ubicación */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  Ubicación
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="street">Calle y Número *</Label>
+                    <Input
+                      id="street"
+                      placeholder="Av. Corrientes 1234"
+                      value={formData.street}
+                      onChange={(e) => handleChange("street", e.target.value)}
+                      className={errors.street ? "border-red-500" : ""}
+                    />
+                    {errors.street && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.street}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="neighborhood">Barrio *</Label>
+                    <Input
+                      id="neighborhood"
+                      placeholder="Centro"
+                      value={formData.neighborhood}
+                      onChange={(e) =>
+                        handleChange("neighborhood", e.target.value)
+                      }
+                      className={errors.neighborhood ? "border-red-500" : ""}
+                    />
+                    {errors.neighborhood && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.neighborhood}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="postalCode">Código Postal *</Label>
+                    <Input
+                      id="postalCode"
+                      placeholder="1000"
+                      value={formData.postalCode}
+                      onChange={(e) =>
+                        handleChange("postalCode", e.target.value)
+                      }
+                      className={errors.postalCode ? "border-red-500" : ""}
+                    />
+                    {errors.postalCode && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.postalCode}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="province">Provincia *</Label>
+                    <Select
+                      value={formData.province}
+                      onValueChange={(value) => handleChange("province", value)}
+                    >
+                      <SelectTrigger
+                        className={errors.province ? "border-red-500" : ""}
+                      >
+                        <SelectValue placeholder="Selecciona la provincia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Buenos Aires">
+                          Buenos Aires
+                        </SelectItem>
+                        <SelectItem value="CABA">
+                          Ciudad Autónoma de Buenos Aires
+                        </SelectItem>
+                        <SelectItem value="Catamarca">Catamarca</SelectItem>
+                        <SelectItem value="Chaco">Chaco</SelectItem>
+                        <SelectItem value="Chubut">Chubut</SelectItem>
+                        <SelectItem value="Córdoba">Córdoba</SelectItem>
+                        <SelectItem value="Corrientes">Corrientes</SelectItem>
+                        <SelectItem value="Entre Ríos">Entre Ríos</SelectItem>
+                        <SelectItem value="Formosa">Formosa</SelectItem>
+                        <SelectItem value="Jujuy">Jujuy</SelectItem>
+                        <SelectItem value="La Pampa">La Pampa</SelectItem>
+                        <SelectItem value="La Rioja">La Rioja</SelectItem>
+                        <SelectItem value="Mendoza">Mendoza</SelectItem>
+                        <SelectItem value="Misiones">Misiones</SelectItem>
+                        <SelectItem value="Neuquén">Neuquén</SelectItem>
+                        <SelectItem value="Río Negro">Río Negro</SelectItem>
+                        <SelectItem value="Salta">Salta</SelectItem>
+                        <SelectItem value="San Juan">San Juan</SelectItem>
+                        <SelectItem value="San Luis">San Luis</SelectItem>
+                        <SelectItem value="Santa Cruz">Santa Cruz</SelectItem>
+                        <SelectItem value="Santa Fe">Santa Fe</SelectItem>
+                        <SelectItem value="Santiago del Estero">
+                          Santiago del Estero
+                        </SelectItem>
+                        <SelectItem value="Tierra del Fuego">
+                          Tierra del Fuego
+                        </SelectItem>
+                        <SelectItem value="Tucumán">Tucumán</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.province && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.province}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Redes Sociales */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Globe className="h-5 w-5" />
+                  Redes Sociales
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="instagram">Instagram</Label>
+                    <Input
+                      id="instagram"
+                      placeholder="@mi_negocio"
+                      value={formData.instagram}
+                      onChange={(e) =>
+                        handleChange("instagram", e.target.value)
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="tiktok">TikTok</Label>
+                    <Input
+                      id="tiktok"
+                      placeholder="@mi_negocio"
+                      value={formData.tiktok}
+                      onChange={(e) => handleChange("tiktok", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="website">Página Web</Label>
+                    <Input
+                      id="website"
+                      placeholder="https://mi-negocio.com"
+                      value={formData.website}
+                      onChange={(e) => handleChange("website", e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Logo del Negocio */}
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                  <Upload className="h-5 w-5" />
+                  Logo del Negocio
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Logo actual */}
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 mb-3">
+                      Logo Actual
+                    </h4>
+                    <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-300">
+                      {business?.logoPath ? (
+                        <img
+                          src={`${getImageUrl(business.logoPath)}`}
+                          alt="Logo actual del negocio"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            console.error("Error cargando imagen:", e);
+                            e.currentTarget.style.display = "none";
+                            e.currentTarget.nextElementSibling?.classList.remove(
+                              "hidden"
+                            );
+                          }}
+                        />
+                      ) : null}
+                      {!business?.logoPath && (
+                        <Building className="h-10 w-10 text-gray-400" />
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      {business?.logoPath
+                        ? "Logo actual del negocio"
+                        : "Sin logo"}
+                    </p>
+                    {business?.logoPath && (
+                      <p className="text-xs text-blue-600 mt-1">
+                        Ruta: {business.logoPath}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Preview del nuevo logo */}
+                  {logoPreview && (
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 mb-3">
+                        Nuevo Logo (Preview)
+                      </h4>
+                      <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden border-2 border-green-300">
+                        <img
+                          src={logoPreview}
+                          alt="Preview del nuevo logo"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <p className="text-xs text-green-600 mt-2">
+                        Nuevo logo seleccionado
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Área de subida */}
+                <div className="border-t pt-4">
+                  <Label
+                    htmlFor="logo"
+                    className="text-sm font-medium text-gray-700"
+                  >
+                    Subir Nuevo Logo
+                  </Label>
+                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-400 transition-colors">
+                    <div className="space-y-1 text-center">
+                      <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                      <div className="flex text-sm text-gray-600">
+                        <label
+                          htmlFor="logo"
+                          className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
+                        >
+                          <span>Subir archivo</span>
+                          <input
+                            id="logo"
+                            name="logo"
+                            type="file"
+                            className="sr-only"
+                            accept="image/*"
+                            onChange={handleFileChangeLogo}
+                          />
+                        </label>
+                        <p className="pl-1">o arrastra y suelta</p>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        PNG, JPG, GIF, WebP hasta 2MB
+                      </p>
+                      {logoFile && (
+                        <div className="space-y-2">
+                          <p className="text-sm text-green-600 font-medium">
+                            ✓ Archivo seleccionado: {logoFile.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Tamaño: {(logoFile.size / 1024 / 1024).toFixed(2)}{" "}
+                            MB
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {errors.logo && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {String(errors.logo)}
+                    </p>
+                  )}
+
+                  {/* Botón para actualizar logo */}
+                  {logoFile && (
+                    <div className="mt-4 flex items-center space-x-3">
+                      <Button
+                        onClick={handleUpdateLogo}
+                        disabled={isLoading}
+                        size="sm"
+                      >
+                        {isLoading ? "Subiendo..." : "Confirmar y Subir Logo"}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setLogoFile(null);
+                          setLogoPreview(null);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Mensajes de error/éxito */}
@@ -615,298 +929,20 @@ export default function BusinessProfilePage() {
                 </Alert>
               )}
 
-              <div className="pt-4">
-                <Button onClick={handleUpdateProfile} disabled={isLoading}>
-                  {isLoading ? "Guardando..." : "Guardar Cambios"}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Ubicación
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="street">Calle y Número *</Label>
-                  <Input
-                    id="street"
-                    placeholder="Av. Corrientes 1234"
-                    value={formData.street}
-                    onChange={(e) => handleChange("street", e.target.value)}
-                    className={errors.street ? "border-red-500" : ""}
-                  />
-                  {errors.street && (
-                    <p className="mt-1 text-sm text-red-600">{errors.street}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="neighborhood">Barrio *</Label>
-                  <Input
-                    id="neighborhood"
-                    placeholder="Centro"
-                    value={formData.neighborhood}
-                    onChange={(e) =>
-                      handleChange("neighborhood", e.target.value)
-                    }
-                    className={errors.neighborhood ? "border-red-500" : ""}
-                  />
-                  {errors.neighborhood && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.neighborhood}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="postalCode">Código Postal *</Label>
-                  <Input
-                    id="postalCode"
-                    placeholder="1000"
-                    value={formData.postalCode}
-                    onChange={(e) => handleChange("postalCode", e.target.value)}
-                    className={errors.postalCode ? "border-red-500" : ""}
-                  />
-                  {errors.postalCode && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.postalCode}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="province">Provincia *</Label>
-                  <Select
-                    value={formData.province}
-                    onValueChange={(value) => handleChange("province", value)}
-                  >
-                    <SelectTrigger
-                      className={errors.province ? "border-red-500" : ""}
-                    >
-                      <SelectValue placeholder="Selecciona la provincia" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Buenos Aires">Buenos Aires</SelectItem>
-                      <SelectItem value="CABA">
-                        Ciudad Autónoma de Buenos Aires
-                      </SelectItem>
-                      <SelectItem value="Catamarca">Catamarca</SelectItem>
-                      <SelectItem value="Chaco">Chaco</SelectItem>
-                      <SelectItem value="Chubut">Chubut</SelectItem>
-                      <SelectItem value="Córdoba">Córdoba</SelectItem>
-                      <SelectItem value="Corrientes">Corrientes</SelectItem>
-                      <SelectItem value="Entre Ríos">Entre Ríos</SelectItem>
-                      <SelectItem value="Formosa">Formosa</SelectItem>
-                      <SelectItem value="Jujuy">Jujuy</SelectItem>
-                      <SelectItem value="La Pampa">La Pampa</SelectItem>
-                      <SelectItem value="La Rioja">La Rioja</SelectItem>
-                      <SelectItem value="Mendoza">Mendoza</SelectItem>
-                      <SelectItem value="Misiones">Misiones</SelectItem>
-                      <SelectItem value="Neuquén">Neuquén</SelectItem>
-                      <SelectItem value="Río Negro">Río Negro</SelectItem>
-                      <SelectItem value="Salta">Salta</SelectItem>
-                      <SelectItem value="San Juan">San Juan</SelectItem>
-                      <SelectItem value="San Luis">San Luis</SelectItem>
-                      <SelectItem value="Santa Cruz">Santa Cruz</SelectItem>
-                      <SelectItem value="Santa Fe">Santa Fe</SelectItem>
-                      <SelectItem value="Santiago del Estero">
-                        Santiago del Estero
-                      </SelectItem>
-                      <SelectItem value="Tierra del Fuego">
-                        Tierra del Fuego
-                      </SelectItem>
-                      <SelectItem value="Tucumán">Tucumán</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.province && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.province}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Globe className="h-5 w-5" />
-                Redes Sociales
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="instagram">Instagram</Label>
-                  <Input
-                    id="instagram"
-                    placeholder="@mi_negocio"
-                    value={formData.instagram}
-                    onChange={(e) => handleChange("instagram", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="tiktok">TikTok</Label>
-                  <Input
-                    id="tiktok"
-                    placeholder="@mi_negocio"
-                    value={formData.tiktok}
-                    onChange={(e) => handleChange("tiktok", e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="website">Página Web</Label>
-                  <Input
-                    id="website"
-                    placeholder="https://mi-negocio.com"
-                    value={formData.website}
-                    onChange={(e) => handleChange("website", e.target.value)}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                Logo del Negocio
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Logo actual */}
-                <div>
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Logo Actual
-                  </h4>
-                  <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden border-2 border-gray-300">
-                    {business?.logoPath ? (
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${business.logoPath}`}
-                        alt="Logo actual del negocio"
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.error("Error cargando imagen:", e);
-                          e.currentTarget.style.display = "none";
-                          e.currentTarget.nextElementSibling?.classList.remove(
-                            "hidden"
-                          );
-                        }}
-                      />
-                    ) : null}
-                    {!business?.logoPath && (
-                      <Building className="h-10 w-10 text-gray-400" />
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    {business?.logoPath
-                      ? "Logo actual del negocio"
-                      : "Sin logo"}
-                  </p>
-                  {business?.logoPath && (
-                    <p className="text-xs text-blue-600 mt-1">
-                      Ruta: {business.logoPath}
-                    </p>
-                  )}
-                </div>
-
-                {/* Preview del nuevo logo */}
-                {logoPreview && (
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 mb-3">
-                      Nuevo Logo (Preview)
-                    </h4>
-                    <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden border-2 border-green-300">
-                      <img
-                        src={logoPreview}
-                        alt="Preview del nuevo logo"
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <p className="text-xs text-green-600 mt-2">
-                      Nuevo logo seleccionado
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Área de subida */}
-              <div className="border-t pt-4">
-                <Label
-                  htmlFor="logo"
-                  className="text-sm font-medium text-gray-700"
+              {/* Botón principal de guardar */}
+              <div className="border-t pt-6">
+                <Button
+                  onClick={handleUpdateProfile}
+                  disabled={isLoading}
+                  size="lg"
+                  className="w-full md:w-auto"
                 >
-                  Subir Nuevo Logo
-                </Label>
-                <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md hover:border-blue-400 transition-colors">
-                  <div className="space-y-1 text-center">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div className="flex text-sm text-gray-600">
-                      <label
-                        htmlFor="logo"
-                        className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500"
-                      >
-                        <span>Subir archivo</span>
-                        <input
-                          id="logo"
-                          name="logo"
-                          type="file"
-                          className="sr-only"
-                          accept="image/*"
-                          onChange={handleFileChangeLogo}
-                        />
-                      </label>
-                      <p className="pl-1">o arrastra y suelta</p>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      PNG, JPG, GIF, WebP hasta 2MB
-                    </p>
-                    {logoFile && (
-                      <div className="space-y-2">
-                        <p className="text-sm text-green-600 font-medium">
-                          ✓ Archivo seleccionado: {logoFile.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Tamaño: {(logoFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                {errors.logo && (
-                  <p className="mt-1 text-sm text-red-600">
-                    {String(errors.logo)}
-                  </p>
-                )}
-
-                {/* Botón para actualizar logo */}
-                {logoFile && (
-                  <div className="mt-4 flex items-center space-x-3">
-                    <Button
-                      onClick={handleUpdateLogo}
-                      disabled={isLoading}
-                      size="sm"
-                    >
-                      {isLoading ? "Subiendo..." : "Confirmar y Subir Logo"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setLogoFile(null);
-                        setLogoPreview(null);
-                      }}
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                )}
+                  {isLoading ? "Guardando..." : "Guardar Todos los Cambios"}
+                </Button>
+                <p className="text-sm text-gray-600 mt-2">
+                  Este botón guardará toda la información del perfil (excepto el
+                  logo, que se sube por separado)
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -1140,6 +1176,7 @@ export default function BusinessProfilePage() {
           </Card>
         </div>
 
+        {/*
         <div className="mt-6 p-4 bg-green-50 rounded-lg">
           <h3 className="font-semibold text-green-900 mb-2">
             ✅ Funcionalidad Completa
@@ -1151,6 +1188,7 @@ export default function BusinessProfilePage() {
             clientes!
           </p>
         </div>
+        */}
       </div>
     </AuthenticatedLayout>
   );

@@ -18,11 +18,14 @@ import {
   Shield,
   Palette,
 } from "lucide-react";
-import { IChangePasswordDto, IClientProfile } from "@shared";
+import { IChangePasswordDto, IClientProfile, UserProvider } from "@shared";
 import { api } from "@/lib/api-client";
-import { toast } from "react-hot-toast";
+import { showToast } from "@/lib/toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ClientProfilePage() {
+  const { user, updateUser } = useAuth();
+
   const [client, setClient] = useState<IClientProfile | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -52,11 +55,11 @@ export default function ClientProfilePage() {
       confirmPassword === "" ||
       currentPassword === ""
     ) {
-      toast.error("Por favor, complete todos los campos");
+      showToast.error("Por favor, complete todos los campos");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden");
+      showToast.error("Las contraseñas no coinciden");
       return;
     }
     try {
@@ -73,8 +76,6 @@ export default function ClientProfilePage() {
         setConfirmPassword("");
         setError("");
       } else {
-        console.log("response", response);
-
         setIsLoading(false);
         setError(response.message || "Error al cambiar la contraseña");
       }
@@ -88,6 +89,33 @@ export default function ClientProfilePage() {
       );
     }
   };
+
+  const handleSaveChanges = async () => {
+    try {
+      const response = await api.clients.updateProfile({
+        firstName: client?.firstName || "",
+        lastName: client?.lastName || "",
+      });
+      if (response.success) {
+        showToast.success("Cambios guardados correctamente");
+
+        // Actualizar el usuario en el contexto de autenticación
+        if (user && client) {
+          const updatedUser = {
+            ...user,
+            username: client?.firstName + " " + client?.lastName,
+          };
+          updateUser(updatedUser);
+        }
+      } else {
+        showToast.error(response.message || "Error al guardar los cambios");
+      }
+    } catch (error) {
+      console.error("Error al guardar los cambios", error);
+      showToast.error("Error al guardar los cambios");
+    }
+  };
+
   return (
     <AuthenticatedLayout title="Mi Perfil">
       <div className="max-w-4xl mx-auto p-6">
@@ -100,6 +128,7 @@ export default function ClientProfilePage() {
 
         <div className="grid gap-6">
           {/* Información Personal */}
+          {/*<div className="grid grid-cols-1 md:grid-cols-2 gap-6">*/}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -114,8 +143,12 @@ export default function ClientProfilePage() {
                   <Input
                     id="firstName"
                     placeholder="Tu nombre"
-                    disabled
                     value={client?.firstName || ""}
+                    onChange={(e) =>
+                      setClient(
+                        client ? { ...client, firstName: e.target.value } : null
+                      )
+                    }
                   />
                 </div>
                 <div>
@@ -123,8 +156,12 @@ export default function ClientProfilePage() {
                   <Input
                     id="lastName"
                     placeholder="Tu apellido"
-                    disabled
                     value={client?.lastName || ""}
+                    onChange={(e) =>
+                      setClient(
+                        client ? { ...client, lastName: e.target.value } : null
+                      )
+                    }
                   />
                 </div>
                 <div>
@@ -138,15 +175,136 @@ export default function ClientProfilePage() {
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="default">✓ Email verificado</Badge>
-                  <Badge variant="outline">Cuenta local</Badge>
+                  <Badge variant="default">
+                    {client?.emailVerified
+                      ? "✓ Email verificado"
+                      : "✗ Email no verificado"}
+                  </Badge>
+                  <Badge
+                    variant={
+                      client?.provider === UserProvider.GOOGLE
+                        ? "default"
+                        : "outline"
+                    }
+                  >
+                    {client?.provider === UserProvider.GOOGLE
+                      ? "Cuenta de Google"
+                      : "Cuenta local"}
+                  </Badge>
                 </div>
                 <div className="pt-4">
-                  <Button disabled>Guardar Cambios</Button>
+                  <Button onClick={handleSaveChanges}>Guardar Cambios</Button>
                 </div>
               </CardContent>
             </Card>
-
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Lock className="h-5 w-5" />
+                  Seguridad
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {client?.provider === UserProvider.GOOGLE ? (
+                  <div className="text-center py-6">
+                    <div className="flex items-center justify-center mb-4">
+                      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-6 h-6 text-blue-600"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            fill="currentColor"
+                            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                          />
+                          <path
+                            fill="currentColor"
+                            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      Cuenta de Google
+                    </h3>
+                    <p className="text-gray-600 mb-4">
+                      Tu cuenta está vinculada con Google. No necesitas una
+                      contraseña para acceder.
+                    </p>
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                      <p className="text-sm text-blue-800">
+                        <strong>¿Necesitas cambiar tu contraseña?</strong>
+                        <br />
+                        Ve a tu cuenta de Google y actualiza tu contraseña desde
+                        allí.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <Label htmlFor="currentPassword">Contraseña Actual</Label>
+                      <Input
+                        id="currentPassword"
+                        type="password"
+                        placeholder="Ingresa tu contraseña actual"
+                        required
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="newPassword">Nueva Contraseña</Label>
+                      <Input
+                        id="newPassword"
+                        type="password"
+                        placeholder="Ingresa tu nueva contraseña"
+                        required
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="confirmPassword">
+                        Confirmar Nueva Contraseña
+                      </Label>
+                      <Input
+                        id="confirmPassword"
+                        type="password"
+                        placeholder="Confirma tu nueva contraseña"
+                        required
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                    </div>
+                    <div className="pt-4">
+                      {error && (
+                        <p className="text-red-500 text-sm mb-2">{error}</p>
+                      )}
+                      {result && (
+                        <p className="text-green-500 text-sm mb-2">{result}</p>
+                      )}
+                      <Button
+                        onClick={handleChangePassword}
+                        disabled={isLoading}
+                      >
+                        Cambiar Contraseña
+                      </Button>
+                      {isLoading && <p>Cambiando contraseña...</p>}
+                    </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+            {/*
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -184,6 +342,7 @@ export default function ClientProfilePage() {
                 </div>
               </CardContent>
             </Card>
+            */}
           </div>
 
           {/* Estadísticas */}
@@ -241,6 +400,7 @@ export default function ClientProfilePage() {
           </Card>
 
           {/* Configuraciones */}
+          {/*
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -309,65 +469,10 @@ export default function ClientProfilePage() {
               </CardContent>
             </Card>
           </div>
-
-          {/* Seguridad */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Lock className="h-5 w-5" />
-                Seguridad
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="currentPassword">Contraseña Actual</Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  placeholder="Ingresa tu contraseña actual"
-                  required
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="newPassword">Nueva Contraseña</Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  placeholder="Ingresa tu nueva contraseña"
-                  required
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
-              <div>
-                <Label htmlFor="confirmPassword">
-                  Confirmar Nueva Contraseña
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  placeholder="Confirma tu nueva contraseña"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-              </div>
-              <div className="pt-4">
-                {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
-                {result && (
-                  <p className="text-green-500 text-sm mb-2">{result}</p>
-                )}
-                <Button onClick={handleChangePassword} disabled={isLoading}>
-                  Cambiar Contraseña
-                </Button>
-                {isLoading && <p>Cambiando contraseña...</p>}
-              </div>
-            </CardContent>
-          </Card>
+          */}
         </div>
 
+        {/*
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-semibold text-blue-900 mb-2">
             🚧 Funcionalidad en Desarrollo
@@ -378,6 +483,7 @@ export default function ClientProfilePage() {
             notificaciones, y gestionar tu seguridad.
           </p>
         </div>
+        */}
       </div>
     </AuthenticatedLayout>
   );

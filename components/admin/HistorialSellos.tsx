@@ -113,7 +113,7 @@ export default function HistorialSellos({
       const response = await api.stamps.getHistory(filters);
 
       if (response.success) {
-        console.log(response.data);
+        //console.log(response.data);
         setStamps(response.data?.stamps || []);
         setClients(response.data?.clients || []);
         setTotalPages(response.data?.totalPages || 1);

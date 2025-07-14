@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { CheckCircle, Copy, Clock } from "lucide-react";
@@ -15,16 +15,7 @@ export default function RewardTicketDialog({
   onClose,
   ticket,
 }: RewardTicketDialogProps) {
-  console.log("🎬 RewardTicketDialog render");
-  console.log("🔍 Props:", { isOpen, ticket: ticket?.redemptionCode });
-
   const [copySuccess, setCopySuccess] = useState(false);
-
-  useEffect(() => {
-    console.log("📊 RewardTicketDialog useEffect triggered");
-    console.log("🔄 isOpen changed to:", isOpen);
-    console.log("🎫 ticket changed to:", ticket);
-  }, [isOpen, ticket]);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -49,17 +40,6 @@ export default function RewardTicketDialog({
     setCopySuccess(false);
     onClose();
   };
-
-  console.log(
-    "🎪 About to return JSX. isOpen:",
-    isOpen,
-    "ticket exists:",
-    !!ticket
-  );
-
-  if (!ticket) {
-    console.log("❌ No ticket data available");
-  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
