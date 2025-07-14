@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:pwa": "node scripts/test-pwa.js",
+    "generate:icons": "node scripts/generate-pwa-icons.js"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",

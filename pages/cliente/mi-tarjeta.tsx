@@ -72,7 +72,8 @@ export default function MiTarjetaPage() {
     );
   }
 
-  if (error) {
+  {
+    /*if (error) {
     return (
       <ProtectedRoute allowedUserTypes={["client"]}>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -87,6 +88,8 @@ export default function MiTarjetaPage() {
         </div>
       </ProtectedRoute>
     );
+  }
+  */
   }
 
   if (clientCards.length === 0) {
