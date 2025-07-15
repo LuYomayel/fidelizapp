@@ -6,7 +6,6 @@ import {
   useCallback,
 } from "react";
 import { useRouter } from "next/router";
-import useAuthPersistence from "../hooks/useAuthPersistence";
 
 interface Tokens {
   accessToken: string;
@@ -36,6 +35,7 @@ interface AuthContextProps extends AuthState {
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isHydrated, setIsHydrated] = useState(false);
   const [state, setState] = useState<AuthState>({
     tokens: null,
     user: null,
@@ -45,26 +45,34 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const router = useRouter();
 
-  // Usar el hook de persistencia mejorado
-  const authPersistence = useAuthPersistence({
-    enableInDevelopment: false, // No persistir en desarrollo
-    expirationHours: 24, // Expirar después de 24 horas
-  });
-
   // Efecto para hidratar el estado desde localStorage
   useEffect(() => {
-    if (authPersistence.isHydrated) {
-      const storedAuth = authPersistence.loadFromStorage();
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("auth-storage");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          const authState = parsed.state || parsed;
 
-      if (storedAuth) {
-        // Validar que los tokens no hayan expirado
-        if (storedAuth.tokens?.expiresAt) {
-          const expiresAt = new Date(storedAuth.tokens.expiresAt);
-          if (expiresAt > new Date()) {
-            setState({ ...storedAuth, isLoading: false });
+          // Validar que los tokens no hayan expirado
+          if (authState.tokens?.expiresAt) {
+            const expiresAt = new Date(authState.tokens.expiresAt);
+            if (expiresAt > new Date()) {
+              setState({ ...authState, isLoading: false });
+            } else {
+              // Token expirado, limpiar localStorage
+              localStorage.removeItem("auth-storage");
+              setState({
+                tokens: null,
+                user: null,
+                userType: null,
+                isLoading: false,
+              });
+            }
+          } else if (authState.tokens) {
+            // Si hay tokens pero no tienen expiresAt, asumir que son válidos
+            setState({ ...authState, isLoading: false });
           } else {
-            // Token expirado, limpiar storage
-            authPersistence.clearStorage();
             setState({
               tokens: null,
               user: null,
@@ -72,10 +80,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               isLoading: false,
             });
           }
-        } else if (storedAuth.tokens) {
-          // Si hay tokens pero no tienen expiresAt, asumir que son válidos
-          setState({ ...storedAuth, isLoading: false });
-        } else {
+        } catch (error) {
+          console.error("Error parsing auth storage:", error);
+          localStorage.removeItem("auth-storage");
           setState({
             tokens: null,
             user: null,
@@ -91,15 +98,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           isLoading: false,
         });
       }
+      setIsHydrated(true);
     }
-  }, [authPersistence.isHydrated]);
+  }, []);
 
   // Persistir cambios en localStorage
   useEffect(() => {
-    if (authPersistence.isHydrated && !state.isLoading) {
-      authPersistence.saveToStorage(state);
+    if (typeof window !== "undefined" && isHydrated) {
+      // Guardar en la estructura que espera el api-client
+      localStorage.setItem("auth-storage", JSON.stringify({ state }));
     }
-  }, [state, authPersistence.isHydrated]);
+  }, [state, isHydrated]);
 
   // Validar tokens al cargar la aplicación
   useEffect(() => {
@@ -112,13 +121,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    if (state.tokens && authPersistence.isHydrated) {
+    if (state.tokens && isHydrated) {
       validateTokens();
       // Validar cada minuto
       const interval = setInterval(validateTokens, 60000);
       return () => clearInterval(interval);
     }
-  }, [state.tokens, authPersistence.isHydrated]);
+  }, [state.tokens, isHydrated]);
 
   const login = useCallback<AuthContextProps["login"]>(
     ({ tokens, user, userType }) => {
@@ -130,13 +139,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = useCallback(() => {
     const currentUserType = state.userType;
     setState({ tokens: null, user: null, userType: null, isLoading: false });
-    authPersistence.clearStorage();
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("auth-storage");
+    }
     console.log("currentUserType", currentUserType);
     return;
     router.push(
       currentUserType === "admin" ? "/admin/login" : "/cliente/login"
     );
-  }, [router, state.userType, authPersistence]);
+  }, [router, state.userType]);
 
   const isAuthenticated = !!(state.tokens && state.userType);
 
@@ -154,7 +165,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         login,
         logout,
         isAuthenticated,
-        isHydrated: authPersistence.isHydrated,
+        isHydrated,
         updateUser,
       }}
     >

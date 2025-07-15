@@ -52,7 +52,7 @@ export default function AdminLogin() {
       if (!response.success) {
         throw new Error(response.message || "Error al iniciar sesión");
       }
-
+      console.log("response.data", response.data);
       login({
         userType: "admin",
         user: response.data?.business,
@@ -61,16 +61,6 @@ export default function AdminLogin() {
           refreshToken: response.data?.tokens?.refreshToken,
         },
       });
-
-      // Guardar token y datos del negocio en localStorage
-      localStorage.setItem(
-        "admin_token",
-        response.data?.tokens?.accessToken || ""
-      );
-      localStorage.setItem(
-        "admin_data",
-        JSON.stringify(response.data?.business || {})
-      );
 
       // Redirigir al dashboard
       router.push("/admin/dashboard");
