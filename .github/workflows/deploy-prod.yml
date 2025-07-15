@@ -1,0 +1,93 @@
+name: Deploy Frontend to Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linting
+        run: npm run lint
+
+      - name: Build application
+        run: |
+          NEXT_PUBLIC_API_URL=https://api.stampia.luciano-yomayel.com \
+          NEXT_PUBLIC_APP_NAME="Stampia" \
+          NEXT_PUBLIC_ENVIRONMENT=production \
+          npm run build
+
+      - name: Run E2E tests
+        run: |
+          # Aquí puedes agregar tests E2E antes de producción
+          echo "E2E tests would run here"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Deploy to Production Server
+        uses: appleboy/ssh-action@v0.1.7
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT }}
+          script: |
+            cd /home/stampia-prod
+            echo "📥 Descargando últimos cambios..."
+            git pull origin main
+
+            echo "📦 Instalando dependencias..."
+            npm install
+
+            echo "🏗️ Ejecutando build del frontend..."
+            NEXT_PUBLIC_API_URL=https://api.stampia.luciano-yomayel.com \
+            NEXT_PUBLIC_APP_NAME="Stampia" \
+            NEXT_PUBLIC_ENVIRONMENT=production \
+            npm run build
+
+            echo "🔄 Reiniciando aplicación con PM2..."
+            pm2 restart stampia-prod || pm2 start ecosystem.config.js --only stampia-prod
+
+            echo "✅ Despliegue completado exitosamente!"
+
+      - name: Health Check
+        run: |
+          sleep 30
+          curl -f https://stampia.luciano-yomayel.com || exit 1
+          echo "✅ Frontend funcionando correctamente"
+
+      - name: Smoke Tests
+        run: |
+          sleep 60
+          # Aquí puedes agregar smoke tests en producción
+          echo "Smoke tests would run against https://stampia.luciano-yomayel.com"
+
+      - name: Notify Success
+        if: success()
+        run: |
+          echo "🚀 Frontend deployment to production successful!"
+          echo "URL: https://stampia.luciano-yomayel.com"
+          echo "Environment: Production"
