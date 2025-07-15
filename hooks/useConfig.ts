@@ -15,7 +15,7 @@ export function useConfig(): Config {
     return {
       API_BASE_URL,
       UPLOADS_URL: `${API_BASE_URL}/uploads`,
-      APP_NAME: "FidelizApp",
+      APP_NAME: "Stampia",
       APP_VERSION: "1.0.0",
     };
   }, []);

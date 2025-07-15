@@ -1,7 +1,7 @@
-// Service Worker para FidelizApp PWA
-const CACHE_NAME = "fidelizapp-v1";
-const STATIC_CACHE_NAME = "fidelizapp-static-v1";
-const API_CACHE_NAME = "fidelizapp-api-v1";
+// Service Worker para Stampia PWA
+const CACHE_NAME = "stampia-v1";
+const STATIC_CACHE_NAME = "stampia-static-v1";
+const API_CACHE_NAME = "stampia-api-v1";
 
 // Detectar si estamos en desarrollo
 const isDevelopment =

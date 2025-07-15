@@ -1,7 +1,7 @@
 {
-  "name": "FidelizApp - Programa de Fidelización",
-  "short_name": "FidelizApp",
-  "description": "Gestiona tu programa de fidelización de clientes de forma fácil y eficiente",
+  "name": "Stampia - Programa de Sellos",
+  "short_name": "Stampia",
+  "description": "Gestiona tu programa de sellos de clientes de forma fácil y eficiente",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
@@ -64,7 +64,7 @@
     {
       "name": "Mi Tarjeta",
       "short_name": "Tarjeta",
-      "description": "Ver mi tarjeta de fidelización",
+      "description": "Ver mi tarjeta de sellos",
       "url": "/cliente/mi-tarjeta",
       "icons": [
         {

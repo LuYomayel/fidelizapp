@@ -119,7 +119,7 @@ export default function RecuperarPassword() {
     return (
       <PublicRoute>
         <Head>
-          <title>Contraseña Restablecida | FidelizApp</title>
+          <title>Contraseña Restablecida | Stampia</title>
         </Head>
 
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4">
@@ -155,10 +155,10 @@ export default function RecuperarPassword() {
   return (
     <PublicRoute>
       <Head>
-        <title>Recuperar Contraseña | FidelizApp</title>
+        <title>Recuperar Contraseña | Stampia</title>
         <meta
           name="description"
-          content="Recupera tu contraseña de FidelizApp"
+          content="Recupera tu contraseña de Stampia"
         />
       </Head>
 

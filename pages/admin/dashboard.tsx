@@ -232,7 +232,7 @@ export default function AdminDashboard() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
               <p className="text-gray-600 mt-1">
-                Gestión simplificada de tu programa de fidelización
+                Gestión simplificada de tu programa de sellos
               </p>
             </div>
             <Button
@@ -480,7 +480,7 @@ export default function AdminDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Award className="w-5 h-5 text-orange-500" />
-                Estado del Programa de Fidelización
+                Estado del Programa de Sellos
               </CardTitle>
               // ... resto del resumen
             </CardHeader>

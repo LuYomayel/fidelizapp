@@ -20,11 +20,11 @@ const PWAInfoCard: React.FC = () => {
         </div>
 
         <h3 className="text-lg font-bold text-gray-900 mb-2">
-          FidelizApp como App Nativa
+          Stampia como App Nativa
         </h3>
 
         <p className="text-gray-600 text-sm mb-4">
-          Instala FidelizApp en tu dispositivo para una experiencia más rápida y
+          Instala Stampia en tu dispositivo para una experiencia más rápida y
           accesible
         </p>
 

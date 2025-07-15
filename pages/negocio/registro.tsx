@@ -297,7 +297,7 @@ export default function RegistroNegocio() {
         <title>Registro de Negocio | FirulApp</title>
         <meta
           name="description"
-          content="Registra tu negocio para comenzar tu programa de fidelización digital"
+          content="Registra tu negocio para comenzar tu programa de sellos digital"
         />
       </Head>
 
@@ -322,7 +322,7 @@ export default function RegistroNegocio() {
               Registrar Negocio
             </h1>
             <p className="mt-2 text-gray-600">
-              Crea tu programa de fidelización digital
+              Crea tu programa de sellos digital
             </p>
           </div>
 

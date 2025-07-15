@@ -440,7 +440,7 @@ export default function BusinessProfilePage() {
     if (qrData?.qrCode) {
       const link = document.createElement("a");
       link.download = `qr-negocio-${
-        business?.businessName || "fidelizapp"
+        business?.businessName || "stampia"
       }.png`;
       link.href = qrData.qrCode;
       link.click();

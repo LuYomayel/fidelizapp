@@ -1,6 +1,6 @@
-# FirulApp - Programa de Fidelización Digital
+# FirulApp - Programa de Sellos Digital
 
-Una aplicación web de fidelización digital tipo "tarjeta digital" para negocios físicos como cafeterías, barberías, almacenes o gimnasios.
+Una aplicación web de sellos digital tipo "tarjeta digital" para negocios físicos como cafeterías, barberías, almacenes o gimnasios.
 
 ## Características Principales
 
@@ -62,4 +62,4 @@ npm run dev
 ## Licencia
 
 Privado - Todos los derechos reservados
-# fidelizapp
+# stampia

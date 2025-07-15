@@ -19,13 +19,13 @@ export default function Document() {
         {/* PWA meta tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#3b82f6" />
-        <meta name="application-name" content="FidelizApp" />
+        <meta name="application-name" content="Stampia" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="FidelizApp" />
+        <meta name="apple-mobile-web-app-title" content="Stampia" />
         <meta
           name="description"
-          content="Gestiona tu programa de fidelización de clientes de forma fácil y eficiente"
+          content="Gestiona tu programa de sellos de clientes de forma fácil y eficiente"
         />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />

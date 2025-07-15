@@ -105,7 +105,7 @@ export default function VerificarEmail() {
     return (
       <PublicRoute>
         <Head>
-          <title>Email Verificado | FidelizApp</title>
+          <title>Email Verificado | Stampia</title>
         </Head>
 
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4">
@@ -141,7 +141,7 @@ export default function VerificarEmail() {
   return (
     <PublicRoute>
       <Head>
-        <title>Verificar Email | FidelizApp</title>
+        <title>Verificar Email | Stampia</title>
         <meta
           name="description"
           content="Verifica tu email para completar el registro"

@@ -112,7 +112,7 @@ export default function ClienteLogin() {
         <title>Login Cliente | FirulApp</title>
         <meta
           name="description"
-          content="Inicia sesión para acceder a tu tarjeta de fidelización digital"
+          content="Inicia sesión para acceder a tu tarjeta de sellos digital"
         />
       </Head>
 
@@ -135,7 +135,7 @@ export default function ClienteLogin() {
 
             <h1 className="text-3xl font-bold text-gray-900">Iniciar Sesión</h1>
             <p className="mt-2 text-gray-600">
-              Accede a tu tarjeta de fidelización digital
+              Accede a tu tarjeta de sellos digital
             </p>
           </div>
 

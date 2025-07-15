@@ -27,7 +27,7 @@ const UpdatePrompt: React.FC = () => {
             Actualización disponible
           </h3>
           <p className="text-xs text-gray-500">
-            Nueva versión de FidelizApp disponible
+            Nueva versión de Stampia disponible
           </p>
         </div>
 

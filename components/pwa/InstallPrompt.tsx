@@ -24,7 +24,7 @@ const InstallPrompt: React.FC = () => {
 
         <div className="flex-1">
           <h3 className="text-sm font-medium text-gray-900">
-            Instalar FidelizApp
+            Instalar Stampia
           </h3>
           <p className="text-xs text-gray-500">
             Accede más rápido desde tu dispositivo

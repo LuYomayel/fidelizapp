@@ -28,7 +28,7 @@ export default function LandingPage() {
   return (
     <PublicRoute>
       <Head>
-        <title>FirulApp - Programa de Fidelización Digital</title>
+        <title>FirulApp - Programa de Sellos Digital</title>
         <meta
           name="description"
           content="Conecta con tus clientes y recompensa su lealtad con un sistema de sellos digitales fácil de usar."
@@ -99,7 +99,7 @@ export default function LandingPage() {
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">
-            Programa de Fidelización
+            Programa de Sellos
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
               Digital
             </span>
@@ -149,7 +149,7 @@ export default function LandingPage() {
                     className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold flex items-center gap-2 mx-auto"
                   >
                     <Download className="w-5 h-5" />
-                    Instalar FidelizApp
+                    Instalar Stampia
                   </Button>
                 </div>
               )}
@@ -160,7 +160,7 @@ export default function LandingPage() {
                   <div className="flex items-center justify-center gap-2 text-green-600">
                     <div className="w-3 h-3 bg-green-500 rounded-full"></div>
                     <span className="text-sm font-medium">
-                      FidelizApp instalada ✓
+                      Stampia instalada ✓
                     </span>
                   </div>
                 </div>
@@ -189,7 +189,7 @@ export default function LandingPage() {
                   Para Negocios
                 </h3>
                 <p className="mb-4 text-white/90">
-                  Configura tu programa de fidelización y comienza a emitir
+                  Configura tu programa de sellos y comienza a emitir
                   sellos digitales
                 </p>
                 <ul className="text-sm space-y-1 mb-6 text-left text-white/80">
@@ -261,7 +261,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="font-bold text-gray-900 text-lg">Registro</h3>
                 <p className="text-gray-600 text-sm leading-relaxed">
-                  El negocio se registra y configura su programa de fidelización
+                  El negocio se registra y configura su programa de sellos
                   personalizado
                 </p>
               </div>
@@ -365,7 +365,7 @@ export default function LandingPage() {
             <div>
               <h3 className="font-bold text-lg mb-4">FirulApp</h3>
               <p className="text-gray-400">
-                La solución digital para programas de fidelización que conecta
+                La solución digital para programas de sellos que conecta
                 negocios con sus clientes.
               </p>
             </div>

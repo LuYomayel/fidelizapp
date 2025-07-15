@@ -14,10 +14,10 @@ function MyApp({ Component, pageProps }: AppProps) {
     <AuthProvider>
       <PWAProvider showDebugPanel={process.env.NODE_ENV === "development"}>
         <Head>
-          <title>FidelizApp - Programa de Fidelización Digital</title>
+          <title>Stampia - Programa de Sellos Digital</title>
           <meta
             name="description"
-            content="Sistema de fidelización digital para negocios físicos"
+            content="Sistema de sellos digital para negocios físicos"
           />
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <link rel="icon" href="/favicon.ico" />

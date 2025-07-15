@@ -66,7 +66,7 @@ export default function ConfiguracionCodigos() {
   return (
     <ProtectedRoute allowedUserTypes={["admin"]}>
       <Head>
-        <title>Configuración de Códigos - FidelizApp Admin</title>
+        <title>Configuración de Códigos - Stampia Admin</title>
         <meta
           name="description"
           content="Configura el sistema de códigos y sellos de tu negocio"
@@ -81,7 +81,7 @@ export default function ConfiguracionCodigos() {
               Configuración de Códigos
             </h1>
             <p className="text-gray-600">
-              Personaliza el comportamiento de tu sistema de fidelización
+              Personaliza el comportamiento de tu sistema de sellos
             </p>
           </div>
 
