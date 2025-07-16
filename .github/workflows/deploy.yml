@@ -26,6 +26,12 @@ jobs:
         run: npm ci
         # ya estamos en la carpeta del proyecto
 
+      - name: Request shared update
+        run: |
+          cd shared
+          git pull origin main
+          cd ..
+
       - name: Build project
         run: npm run build
         # ya estamos en la carpeta del proyecto
@@ -57,8 +63,8 @@ jobs:
             npm install
 
             echo "🏗️ Ejecutando build del frontend con variables..."
-            FRONTEND_URL=https://stampia.luciano-yomayel.com \
-            NEXT_PUBLIC_API_URL=https://api.stampia.luciano-yomayel.com \
+            FRONTEND_URL=https://fidelizapp.luciano-yomayel.com \
+            NEXT_PUBLIC_API_URL=https://api-fidelizapp.luciano-yomayel.com \
             npm run build
 
             echo "🔄 Reiniciando aplicación con PM2..."

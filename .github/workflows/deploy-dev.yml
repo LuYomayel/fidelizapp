@@ -10,12 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
           submodules: recursive
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: "18"
           cache: "npm"
@@ -23,24 +24,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build application
-        run: |
-          NEXT_PUBLIC_API_URL=https://api-dev.stampia.luciano-yomayel.com \
-          NEXT_PUBLIC_APP_NAME="Stampia Dev" \
-          NEXT_PUBLIC_ENVIRONMENT=development \
-          npm run build
-
       - name: Deploy to Development Server
-        uses: appleboy/ssh-action@v0.1.7
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.DEV_HOST }}
-          username: ${{ secrets.DEV_USERNAME }}
-          key: ${{ secrets.DEV_SSH_KEY }}
-          port: ${{ secrets.DEV_PORT }}
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USERNAME }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT }}
           script: |
             cd /home/stampia-dev
             echo "📥 Descargando últimos cambios..."
             git pull origin dev
+
+            echo "📥 Descargando últimos cambios de las interfaces"
+            git submodule update --init --recursive
+            cd shared
+            git pull origin main
+            cd ..
 
             echo "📦 Instalando dependencias..."
             npm install
