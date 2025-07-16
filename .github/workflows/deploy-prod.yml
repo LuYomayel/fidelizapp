@@ -66,6 +66,7 @@ jobs:
             NEXT_PUBLIC_API_URL=https://api.stampia.luciano-yomayel.com \
             NEXT_PUBLIC_APP_NAME="Stampia" \
             NEXT_PUBLIC_ENVIRONMENT=production \
+            FRONTEND_URL=https://stampia.luciano-yomayel.com \
             npm run build
 
             echo "🔄 Reiniciando aplicación con PM2..."
@@ -78,12 +79,6 @@ jobs:
           sleep 30
           curl -f https://stampia.luciano-yomayel.com || exit 1
           echo "✅ Frontend funcionando correctamente"
-
-      - name: Smoke Tests
-        run: |
-          sleep 60
-          # Aquí puedes agregar smoke tests en producción
-          echo "Smoke tests would run against https://stampia.luciano-yomayel.com"
 
       - name: Notify Success
         if: success()

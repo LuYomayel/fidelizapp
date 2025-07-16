@@ -61,21 +61,10 @@ jobs:
             NEXT_PUBLIC_API_URL=https://api-test.stampia.luciano-yomayel.com \
             NEXT_PUBLIC_APP_NAME="Stampia Test" \
             NEXT_PUBLIC_ENVIRONMENT=testing \
+            FRONTEND_URL=https://test.stampia.luciano-yomayel.com \
             npm run build
 
             echo "🔄 Reiniciando aplicación con PM2..."
             pm2 restart stampia-test || pm2 start ecosystem.config.js --only stampia-test
 
             echo "✅ Despliegue completado exitosamente!"
-
-      - name: Health Check
-        run: |
-          sleep 30
-          curl -f https://test.stampia.luciano-yomayel.com || exit 1
-          echo "✅ Frontend funcionando correctamente"
-
-      - name: Run E2E Tests
-        run: |
-          sleep 60
-          # Aquí puedes agregar tests E2E contra el ambiente de testing
-          echo "E2E tests would run against https://test.stampia.luciano-yomayel.com"

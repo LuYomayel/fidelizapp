@@ -49,6 +49,7 @@ jobs:
             NEXT_PUBLIC_API_URL=https://api-dev.stampia.luciano-yomayel.com \
             NEXT_PUBLIC_APP_NAME="Stampia Dev" \
             NEXT_PUBLIC_ENVIRONMENT=development \
+            FRONTEND_URL=https://dev.stampia.luciano-yomayel.com \
             npm run build
 
             echo "🔄 Reiniciando aplicación con PM2..."
