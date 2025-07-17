@@ -32,6 +32,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   BusinessSize,
   BusinessType,
+  IBusiness,
   IBusinessProfile,
   IBusinessQRData,
 } from "@/shared";
@@ -53,7 +54,7 @@ export default function BusinessProfilePage() {
   const [qrData, setQrData] = useState<IBusinessQRData | null>(null);
   const [isGeneratingQR, setIsGeneratingQR] = useState(false);
   const [customType, setCustomType] = useState("");
-  const [formData, setFormData] = useState<any>({
+  const [formData, setFormData] = useState<IBusiness>({
     businessName: "",
     email: "",
     internalPhone: "",
@@ -69,6 +70,12 @@ export default function BusinessProfilePage() {
     website: "",
     stampsForReward: 0,
     rewardDescription: "",
+    adminFirstName: "",
+    adminLastName: "",
+    emailVerified: false,
+    mustChangePassword: false,
+    logoPath: "",
+    id: 0,
   });
   useEffect(() => {
     loadBusiness();
@@ -96,6 +103,11 @@ export default function BusinessProfilePage() {
         stampsForReward: response.data?.stampsForReward || 0,
         rewardDescription: response.data?.rewardDescription || "",
         logoPath: response.data?.logoPath || "",
+        adminFirstName: response.data?.adminFirstName || "",
+        adminLastName: response.data?.adminLastName || "",
+        emailVerified: response.data?.emailVerified || false,
+        mustChangePassword: response.data?.mustChangePassword || false,
+        id: response.data?.id || 0,
       });
       // Cargar customType si existe
       setCustomType(response.data?.customType || "");
@@ -245,6 +257,8 @@ export default function BusinessProfilePage() {
         website: formData.website || undefined,
         customType:
           formData.type === BusinessType.OTRO ? customType.trim() : undefined,
+        adminFirstName: formData.adminFirstName,
+        adminLastName: formData.adminLastName,
       };
 
       const response = await api.business.updateProfile(updateData);
@@ -626,6 +640,51 @@ export default function BusinessProfilePage() {
                       )}
                     </div>
                   )}
+                  <div>
+                    <Label
+                      htmlFor="adminFirstName"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Nombre del Administrador *
+                    </Label>
+                    <Input
+                      id="adminFirstName"
+                      value={formData.adminFirstName}
+                      onChange={(e) =>
+                        handleChange("adminFirstName", e.target.value)
+                      }
+                      className={errors.adminFirstName ? "border-red-500" : ""}
+                      placeholder="Juan"
+                    />
+                    {errors.adminFirstName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.adminFirstName}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor="adminLastName"
+                      className="text-sm font-medium text-gray-700"
+                    >
+                      Apellido del Administrador *
+                    </Label>
+                    <Input
+                      id="adminLastName"
+                      value={formData.adminLastName}
+                      onChange={(e) =>
+                        handleChange("adminLastName", e.target.value)
+                      }
+                      className={errors.adminLastName ? "border-red-500" : ""}
+                      placeholder="Pérez"
+                    />
+                    {errors.adminLastName && (
+                      <p className="mt-1 text-sm text-red-600">
+                        {errors.adminLastName}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
 
