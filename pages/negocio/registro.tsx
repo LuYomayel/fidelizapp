@@ -61,6 +61,8 @@ export default function RegistroNegocio() {
           tiktok: "test",
           website: "test",
           password: "test",
+          adminFirstName: "Test",
+          adminLastName: "Test",
         }
       : {
           businessName: "",
@@ -80,6 +82,8 @@ export default function RegistroNegocio() {
           tiktok: "",
           website: "",
           password: "",
+          adminFirstName: "",
+          adminLastName: "",
         }
   );
 
