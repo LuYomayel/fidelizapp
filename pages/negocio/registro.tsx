@@ -153,6 +153,14 @@ export default function RegistroNegocio() {
       newErrors.customType = "Debes especificar el tipo de negocio";
     }
 
+    // Validaciones de administrador
+    if (!formData.adminFirstName?.trim()) {
+      newErrors.adminFirstName = "El nombre del administrador es obligatorio";
+    }
+    if (!formData.adminLastName?.trim()) {
+      newErrors.adminLastName = "El apellido del administrador es obligatorio";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -195,9 +203,9 @@ export default function RegistroNegocio() {
       if (formData.website) formDataToSend.append("website", formData.website);
       if (logoFile) formDataToSend.append("logo", logoFile);
 
-      // Agregar campos de administrador (temporal hasta implementar en formulario)
-      formDataToSend.append("adminFirstName", "Administrador");
-      formDataToSend.append("adminLastName", "Principal");
+      // Agregar campos de administrador
+      formDataToSend.append("adminFirstName", formData.adminFirstName);
+      formDataToSend.append("adminLastName", formData.adminLastName);
 
       const response: any = await api.businesses.register(formDataToSend);
 
@@ -581,6 +589,54 @@ export default function RegistroNegocio() {
                         )}
                       </div>
                     )}
+
+                    <div>
+                      <Label
+                        htmlFor="adminFirstName"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Nombre del Administrador *
+                      </Label>
+                      <Input
+                        id="adminFirstName"
+                        value={formData.adminFirstName}
+                        onChange={(e) =>
+                          handleChange("adminFirstName", e.target.value)
+                        }
+                        className={
+                          errors.adminFirstName ? "border-red-500" : ""
+                        }
+                        placeholder="Juan"
+                      />
+                      {errors.adminFirstName && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.adminFirstName}
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label
+                        htmlFor="adminLastName"
+                        className="text-sm font-medium text-gray-700"
+                      >
+                        Apellido del Administrador *
+                      </Label>
+                      <Input
+                        id="adminLastName"
+                        value={formData.adminLastName}
+                        onChange={(e) =>
+                          handleChange("adminLastName", e.target.value)
+                        }
+                        className={errors.adminLastName ? "border-red-500" : ""}
+                        placeholder="Pérez"
+                      />
+                      {errors.adminLastName && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.adminLastName}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 

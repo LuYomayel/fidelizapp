@@ -16,7 +16,7 @@ import {
   Package,
 } from "lucide-react";
 import { useState } from "react";
-
+import { toast } from "react-hot-toast";
 interface AuthenticatedLayoutProps {
   children: React.ReactNode;
   title?: string;
@@ -73,13 +73,8 @@ export function AuthenticatedLayout({
 
   // Si no hay usuario después de la hidratación, mostrar mensaje
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">No se encontró información de usuario</p>
-        </div>
-      </div>
-    );
+    toast.error("No se encontró información de usuario");
+    router.push("/");
   }
 
   return (

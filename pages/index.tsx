@@ -40,10 +40,10 @@ export default function LandingPage() {
         <LandingHeader />
 
         {/* Hero */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-16">
           <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 mb-6">
             Programa de Sellos
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block">
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent block h-16">
               Digital
             </span>
           </h1>
