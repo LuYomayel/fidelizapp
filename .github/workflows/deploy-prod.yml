@@ -54,10 +54,10 @@ jobs:
             npm install
 
             echo "🏗️ Ejecutando build del frontend..."
-            NEXT_PUBLIC_API_URL=https://api.stampia.luciano-yomayel.com \
+            NEXT_PUBLIC_API_URL=https://api.stampia.app \
             NEXT_PUBLIC_APP_NAME="Stampia" \
             NEXT_PUBLIC_ENVIRONMENT=production \
-            FRONTEND_URL=https://stampia.luciano-yomayel.com \
+            FRONTEND_URL=https://stampia.app \
             npm run build
 
             echo "🔄 Reiniciando aplicación con PM2..."
@@ -68,12 +68,12 @@ jobs:
       - name: Health Check
         run: |
           sleep 30
-          curl -f https://stampia.luciano-yomayel.com || exit 1
+          curl -f https://stampia.app || exit 1
           echo "✅ Frontend funcionando correctamente"
 
       - name: Notify Success
         if: success()
         run: |
           echo "🚀 Frontend deployment to production successful!"
-          echo "URL: https://stampia.luciano-yomayel.com"
+          echo "URL: https://stampia.app"
           echo "Environment: Production"
