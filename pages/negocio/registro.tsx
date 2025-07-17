@@ -288,9 +288,7 @@ export default function RegistroNegocio() {
       }
 
       // Mostrar el error en el campo de email (es visible y relevante)
-      setErrors({
-        email: errorMessage,
-      });
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -718,6 +716,7 @@ export default function RegistroNegocio() {
                         }
                         className={errors.postalCode ? "border-red-500" : ""}
                         placeholder="1000"
+                        maxLength={6}
                       />
                       {errors.postalCode && (
                         <p className="mt-1 text-sm text-red-600">
