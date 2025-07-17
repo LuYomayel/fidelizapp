@@ -22,6 +22,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api } from "@/lib/api-client";
 import { LoginClientDto } from "@shared";
 import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "@/lib/toast";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import PublicRoute from "@/components/shared/PublicRoute";
 import LandingHeader from "@/components/landing/header";
@@ -71,11 +72,21 @@ export default function ClienteLogin() {
         data: { token: string; client: any; tokens: any };
         requiresVerification?: boolean;
         email?: string;
+        mustChangePassword?: boolean;
       };
 
       //
       if (response.success) {
         console.log("response.data.client", response.data.client);
+
+        // Verificar si debe cambiar la contraseña
+        if (response.mustChangePassword) {
+          toast.success("Debes cambiar tu contraseña antes de continuar");
+          router.push(
+            `/cliente/cambiar-password?email=${encodeURIComponent(email)}`
+          );
+          return;
+        }
 
         // Usar el AuthContext para manejar la autenticación
         login({

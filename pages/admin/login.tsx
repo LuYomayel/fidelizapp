@@ -63,7 +63,6 @@ export default function AdminLogin() {
         throw new Error(response.message || "Error al iniciar sesión");
       }
 
-      console.log("response.data", response.data);
       login({
         userType: "admin",
         user: response.data?.business,
@@ -157,6 +156,35 @@ export default function AdminLogin() {
                       value={formData.password}
                       onChange={handleChange}
                     />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <div className="text-right mt-2">
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-sm text-gray-600 hover:text-gray-800 p-0 h-auto"
+                      onClick={() =>
+                        router.push(
+                          `/admin/forgot-password?email=${encodeURIComponent(
+                            formData.email
+                          )}`
+                        )
+                      }
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </Button>
                   </div>
                 </div>
 

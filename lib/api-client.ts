@@ -384,6 +384,24 @@ export const api = {
       code: string;
       newPassword: string;
     }) => apiClient.post("/clients/reset-password", data),
+    changePasswordAfterVerification: (data: {
+      email: string;
+      newPassword: string;
+    }) =>
+      apiClient.post<{
+        client: IClient;
+        tokens: { accessToken: string; refreshToken: string };
+      }>("/clients/change-password", data),
+    changePasswordAfterRecovery: (data: {
+      email: string;
+      newPassword: string;
+    }) =>
+      apiClient.post<{
+        client: IClient;
+        tokens: { accessToken: string; refreshToken: string };
+      }>("/clients/change-password-recovery", data),
+    validateRecoveryCode: (data: { email: string; code: string }) =>
+      apiClient.post("/clients/validate-recovery-code", data),
 
     // Profile endpoints
     getProfile: () =>
@@ -431,6 +449,15 @@ export const api = {
       apiClient.post("/business/verify-email", data),
     resendVerificationCode: (data: { email: string }) =>
       apiClient.post("/business/resend-verification", data),
+
+    // Recuperación de contraseña para negocios
+    forgotPassword: (data: { email: string }) =>
+      apiClient.post("/business/forgot-password", data),
+    resetPassword: (data: {
+      email: string;
+      code: string;
+      newPassword: string;
+    }) => apiClient.post("/business/reset-password", data),
   },
   business: {
     // Configuraciones de sellos

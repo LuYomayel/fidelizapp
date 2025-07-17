@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "test:pwa": "node scripts/test-pwa.js",
-    "generate:icons": "node scripts/generate-pwa-icons.js"
+    "generate:icons": "node scripts/generate-pwa-icons.js",
+    "clear:cache": "node scripts/clear-sw-cache.js",
+    "dev:clean": "npm run clear:cache && npm run dev"
   },
   "dependencies": {
     "@google-cloud/local-auth": "^3.0.1",

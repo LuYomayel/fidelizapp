@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { api } from "@/lib/api-client";
 import PublicRoute from "@/components/shared/PublicRoute";
-
+import LandingHeader from "@/components/landing/header";
 export default function RecuperarPassword() {
   const [step, setStep] = useState<"email" | "code" | "success">("email");
   const [email, setEmail] = useState("");
@@ -36,9 +36,12 @@ export default function RecuperarPassword() {
       const response = await api.clients.forgotPassword({ email });
 
       if (response.success) {
-        setStep("code");
-        setMessageType("success");
-        setMessage("Código de recuperación enviado a tu email");
+        // Redirigir a la página de verificación de código
+        router.push(
+          `/cliente/verificar-codigo-recuperacion?email=${encodeURIComponent(
+            email
+          )}`
+        );
       } else {
         setMessageType("error");
         setMessage(response.message || "Error al enviar el código");
@@ -156,23 +159,13 @@ export default function RecuperarPassword() {
     <PublicRoute>
       <Head>
         <title>Recuperar Contraseña | Stampia</title>
-        <meta
-          name="description"
-          content="Recupera tu contraseña de Stampia"
-        />
+        <meta name="description" content="Recupera tu contraseña de Stampia" />
       </Head>
-
+      <LandingHeader />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {/* Header */}
           <div className="text-center mb-8">
-            <Button variant="ghost" asChild className="mb-8">
-              <Link href="/cliente/login">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver al login
-              </Link>
-            </Button>
-
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Lock className="w-8 h-8 text-white" />

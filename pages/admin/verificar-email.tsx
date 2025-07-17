@@ -20,7 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 // API client
 import { api } from "@/lib/api-client";
 import { toast } from "react-hot-toast";
-
+import LandingHeader from "@/components/landing/header";
 export default function VerificarEmail() {
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -30,15 +30,21 @@ export default function VerificarEmail() {
   const [success, setSuccess] = useState(false);
   const [canResend, setCanResend] = useState(true);
   const [countdown, setCountdown] = useState(0);
+  const [mode, setMode] = useState<"verification" | "forgot-password">(
+    "verification"
+  );
 
   const router = useRouter();
 
-  // Obtener email de query params si existe
+  // Obtener email y mode de query params si existe
   useEffect(() => {
     if (router.query.email) {
       setEmail(router.query.email as string);
     }
-  }, [router.query.email]);
+    if (router.query.mode) {
+      setMode(router.query.mode as "verification" | "forgot-password");
+    }
+  }, [router.query.email, router.query.mode]);
 
   // Countdown para reenvío
   useEffect(() => {
@@ -56,21 +62,42 @@ export default function VerificarEmail() {
     setIsLoading(true);
 
     try {
-      const response = await api.businesses.verifyEmail({
-        email,
-        verificationCode,
-      });
+      if (mode === "verification") {
+        // Modo verificación de email
+        const response = await api.businesses.verifyEmail({
+          email,
+          verificationCode,
+        });
 
-      if (response.success) {
-        setSuccess(true);
-        toast.success(
-          "Email verificado exitosamente. Ahora puedes cambiar tu contraseña."
-        );
-        router.push(
-          `/admin/cambiar-password?email=${encodeURIComponent(email)}`
-        );
+        if (response.success) {
+          setSuccess(true);
+          toast.success(
+            "Email verificado exitosamente. Ahora puedes cambiar tu contraseña."
+          );
+          router.push(
+            `/admin/cambiar-password?email=${encodeURIComponent(email)}`
+          );
+        } else {
+          setError(response.message || "Error al verificar el código");
+        }
       } else {
-        setError(response.message || "Error al verificar el código");
+        // Modo recuperación de contraseña
+        const response = await api.businesses.resetPassword({
+          email,
+          code: verificationCode,
+          newPassword: email, // Usar email como contraseña temporal
+        });
+
+        if (response.success) {
+          toast.success(
+            "Contraseña restablecida exitosamente. Ahora puedes cambiar tu contraseña."
+          );
+          router.push(
+            `/admin/cambiar-password?email=${encodeURIComponent(email)}`
+          );
+        } else {
+          setError(response.message || "Error al verificar el código");
+        }
       }
     } catch (error: any) {
       setError(error.response?.data?.message || "Error al verificar el código");
@@ -87,9 +114,16 @@ export default function VerificarEmail() {
     setCanResend(false);
 
     try {
-      const response = await api.businesses.resendVerificationCode({
-        email,
-      });
+      let response;
+      if (mode === "verification") {
+        response = await api.businesses.resendVerificationCode({
+          email,
+        });
+      } else {
+        response = await api.businesses.forgotPassword({
+          email,
+        });
+      }
 
       if (response.success) {
         setCountdown(60); // 60 segundos de cooldown
@@ -157,7 +191,7 @@ export default function VerificarEmail() {
           content="Verifica tu email para completar el registro de tu negocio"
         />
       </Head>
-
+      <LandingHeader />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {/* Header */}
@@ -169,17 +203,25 @@ export default function VerificarEmail() {
             </div>
 
             <h1 className="text-3xl font-bold text-gray-900">
-              Verificar Email
+              {mode === "verification"
+                ? "Verificar Email"
+                : "Recuperar Contraseña"}
             </h1>
             <p className="mt-2 text-gray-600">
-              Ingresa el código de verificación que enviamos a tu email
+              {mode === "verification"
+                ? "Ingresa el código de verificación que enviamos a tu email"
+                : "Ingresa el código de recuperación que enviamos a tu email"}
             </p>
           </div>
 
           {/* Formulario */}
           <Card>
             <CardHeader>
-              <CardTitle>Código de Verificación</CardTitle>
+              <CardTitle>
+                {mode === "verification"
+                  ? "Código de Verificación"
+                  : "Código de Recuperación"}
+              </CardTitle>
               <CardDescription>
                 Revisa tu bandeja de entrada y spam
               </CardDescription>
@@ -200,7 +242,9 @@ export default function VerificarEmail() {
 
                 <div>
                   <Label htmlFor="verificationCode">
-                    Código de Verificación
+                    {mode === "verification"
+                      ? "Código de Verificación"
+                      : "Código de Recuperación"}
                   </Label>
                   <Input
                     id="verificationCode"
@@ -224,7 +268,13 @@ export default function VerificarEmail() {
                 )}
 
                 <Button type="submit" disabled={isLoading} className="w-full">
-                  {isLoading ? "Verificando..." : "Verificar Email"}
+                  {isLoading
+                    ? mode === "verification"
+                      ? "Verificando..."
+                      : "Verificando..."
+                    : mode === "verification"
+                    ? "Verificar Email"
+                    : "Recuperar Contraseña"}
                 </Button>
 
                 <div className="text-center space-y-2">
@@ -248,15 +298,6 @@ export default function VerificarEmail() {
                     ) : (
                       `Reenviar en ${countdown}s`
                     )}
-                  </Button>
-                </div>
-
-                <div className="text-center">
-                  <Button variant="ghost" asChild>
-                    <Link href="/admin/login">
-                      <ArrowLeft className="w-4 h-4 mr-2" />
-                      Volver al Login
-                    </Link>
                   </Button>
                 </div>
               </form>

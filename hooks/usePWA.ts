@@ -52,11 +52,20 @@ const usePWA = (): PWAState & PWAActions => {
   const registerServiceWorker = useCallback(async () => {
     if (!state.isSupported) return;
 
+    // Solo registrar en producción y testing, no en desarrollo
+    const env = process.env.NEXT_PUBLIC_ENV || "production";
+    if (env === "development") {
+      console.log(
+        "[PWA] Development mode: skipping service worker registration"
+      );
+      return;
+    }
+
     try {
       const reg = await navigator.serviceWorker.register("/sw.js");
       setRegistration(reg);
 
-      console.log("[PWA] Service Worker registrado:", reg);
+      console.log(`[PWA] Service Worker registrado (${env}):`, reg);
 
       // Verificar updates
       reg.addEventListener("updatefound", () => {
@@ -157,8 +166,9 @@ const usePWA = (): PWAState & PWAActions => {
     // Verificar si está instalada
     setState((prev) => ({ ...prev, isInstalled: checkIfInstalled() }));
 
-    // Registrar service worker solo en producción
-    if (process.env.NODE_ENV === "production") {
+    // Registrar service worker según el ambiente
+    const env = process.env.NEXT_PUBLIC_ENV || "production";
+    if (env !== "development") {
       registerServiceWorker();
     }
 

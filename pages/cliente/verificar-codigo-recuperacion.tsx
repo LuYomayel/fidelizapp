@@ -6,14 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle, Mail, AlertCircle } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { CheckCircle, Mail, AlertCircle, RefreshCw } from "lucide-react";
 import { api } from "@/lib/api-client";
 import { toast } from "@/lib/toast";
+import PublicRoute from "@/components/shared/PublicRoute";
 import LandingHeader from "@/components/landing/header";
-export default function VerificarEmailCliente() {
+
+export default function VerificarCodigoRecuperacion() {
   const router = useRouter();
-  const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -37,33 +37,27 @@ export default function VerificarEmailCliente() {
     }
   }, [countdown]);
 
-  const handleVerifyEmail = async (e: React.FormEvent) => {
+  const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrors({});
 
     try {
-      const response = (await api.clients.verifyEmail({
+      // Validar el código de recuperación
+      const response = await api.clients.validateRecoveryCode({
         email,
         code,
-      })) as {
-        success: boolean;
-        message: string;
-        data?: {
-          client: any;
-          token: string;
-        };
-      };
+      });
 
       if (response.success) {
-        toast.success(
-          "¡Email verificado exitosamente! Ahora debes cambiar tu contraseña."
-        );
+        toast.success("Código verificado correctamente");
 
         // Redirigir a cambiar contraseña
         setTimeout(() => {
           router.push(
-            `/cliente/cambiar-password?email=${encodeURIComponent(email)}`
+            `/cliente/cambiar-password-recuperacion?email=${encodeURIComponent(
+              email
+            )}`
           );
         }, 1500);
       } else {
@@ -89,7 +83,7 @@ export default function VerificarEmailCliente() {
     setErrors({});
 
     try {
-      const response = await api.clients.resendVerification({
+      const response = await api.clients.forgotPassword({
         email,
       });
 
@@ -113,33 +107,34 @@ export default function VerificarEmailCliente() {
   };
 
   return (
-    <>
+    <PublicRoute>
       <Head>
-        <title>Verificar Email | Stampia</title>
+        <title>Verificar Código | Stampia</title>
         <meta
           name="description"
-          content="Verifica tu email para completar tu registro"
+          content="Verifica el código de recuperación de contraseña"
         />
       </Head>
       <LandingHeader />
+
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-600 rounded-full flex items-center justify-center">
                 <Mail className="w-8 h-8 text-white" />
               </div>
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              Verificar Email
+              Verificar Código
             </CardTitle>
             <p className="text-gray-600 mt-2">
-              Hemos enviado un código de verificación a tu email
+              Hemos enviado un código de recuperación a tu email
             </p>
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <form onSubmit={handleVerifyEmail} className="space-y-4">
+            <form onSubmit={handleVerifyCode} className="space-y-4">
               <div>
                 <Label
                   htmlFor="email"
@@ -154,11 +149,12 @@ export default function VerificarEmailCliente() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
                   required
-                  className={errors.email ? "border-red-500" : ""}
+                  disabled
+                  className="bg-gray-50"
                 />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Email para recuperación
+                </p>
               </div>
 
               <div>
@@ -166,7 +162,7 @@ export default function VerificarEmailCliente() {
                   htmlFor="code"
                   className="text-sm font-medium text-gray-700"
                 >
-                  Código de Verificación
+                  Código de Recuperación
                 </Label>
                 <Input
                   id="code"
@@ -187,10 +183,10 @@ export default function VerificarEmailCliente() {
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-medium py-2 px-4 rounded-md transition-colors"
                 disabled={isLoading || code.length !== 6}
               >
-                {isLoading ? "Verificando..." : "Verificar Email"}
+                {isLoading ? "Verificando..." : "Verificar Código"}
               </Button>
             </form>
 
@@ -202,7 +198,7 @@ export default function VerificarEmailCliente() {
                 variant="outline"
                 onClick={handleResendCode}
                 disabled={isResending || countdown > 0}
-                className="text-blue-600 hover:text-blue-700"
+                className="text-orange-600 hover:text-orange-700"
               >
                 {isResending
                   ? "Enviando..."
@@ -212,9 +208,9 @@ export default function VerificarEmailCliente() {
               </Button>
             </div>
 
-            <Alert className="bg-blue-50 border-blue-200">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-blue-800">
+            <Alert className="bg-orange-50 border-orange-200">
+              <AlertCircle className="h-4 w-4 text-orange-600" />
+              <AlertDescription className="text-orange-800">
                 <strong>Importante:</strong> Revisa tu carpeta de spam si no
                 encuentras el email. El código expira en 15 minutos.
               </AlertDescription>
@@ -222,6 +218,6 @@ export default function VerificarEmailCliente() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </PublicRoute>
   );
 }

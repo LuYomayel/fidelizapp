@@ -20,7 +20,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useAuth } from "@/contexts/AuthContext";
 import { api } from "@/lib/api-client";
 import { toast } from "react-hot-toast";
-
+import LandingHeader from "@/components/landing/header";
 export default function CambiarPassword() {
   const [formData, setFormData] = useState({
     newPassword: "",
@@ -84,7 +84,7 @@ export default function CambiarPassword() {
             refreshToken: response.data?.tokens?.refreshToken || "",
           },
         });
-        toast.success("Contraseña cambiada correctamente");
+
         // Redirigir al dashboard después del cambio exitoso
         router.push("/admin/dashboard");
       } else {
@@ -115,7 +115,7 @@ export default function CambiarPassword() {
           content="Cambia tu contraseña temporal por una segura"
         />
       </Head>
-
+      <LandingHeader />
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {/* Header */}

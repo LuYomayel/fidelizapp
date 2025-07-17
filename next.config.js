@@ -77,7 +77,25 @@ const nextConfig = {
   // Configuración adicional para PWA
   async generateBuildId() {
     // Generar ID único para cada build (útil para cache busting)
-    return `pwa-${Date.now()}`;
+    const env = process.env.NEXT_PUBLIC_ENV || "production";
+    const timestamp = Date.now();
+    return `pwa-${env}-${timestamp}`;
+  },
+
+  // Webpack configuration para inyectar variables de entorno en el service worker
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    if (!isServer) {
+      // Inyectar variables de entorno en el service worker
+      config.plugins.push(
+        new webpack.DefinePlugin({
+          "self.__ENV__": JSON.stringify({
+            NEXT_PUBLIC_ENV: process.env.NEXT_PUBLIC_ENV || "production",
+            NODE_ENV: process.env.NODE_ENV || "production",
+          }),
+        })
+      );
+    }
+    return config;
   },
 };
 
