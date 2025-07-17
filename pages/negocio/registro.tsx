@@ -119,46 +119,58 @@ export default function RegistroNegocio() {
     // Validaciones obligatorias
     if (!formData.businessName.trim()) {
       newErrors.businessName = "El nombre del negocio es obligatorio";
+      toast.error("El nombre del negocio es obligatorio");
     }
 
     if (!formData.email) {
       newErrors.email = "El email es obligatorio";
+      toast.error("El email es obligatorio");
     } else if (!validarEmail(formData.email)) {
       newErrors.email = "Email inválido";
+      toast.error("Email inválido");
     }
 
     if (!formData.externalPhone) {
       newErrors.externalPhone = "El teléfono externo es obligatorio";
+      toast.error("El teléfono externo es obligatorio");
     } else if (!validarTelefono(formData.externalPhone)) {
       newErrors.externalPhone = "Teléfono externo inválido";
+      toast.error("Teléfono externo inválido");
     }
 
     // Validaciones de ubicación
 
     if (!formData.street?.trim()) {
       newErrors.street = "La calle y número son obligatorios";
+      toast.error("La calle y número son obligatorios");
     }
     if (!formData.neighborhood?.trim()) {
       newErrors.neighborhood = "El barrio es obligatorio";
+      toast.error("El barrio es obligatorio");
     }
     if (!formData.postalCode?.trim()) {
       newErrors.postalCode = "El código postal es obligatorio";
+      toast.error("El código postal es obligatorio");
     }
     if (!formData.province?.trim()) {
       newErrors.province = "La provincia es obligatoria";
+      toast.error("La provincia es obligatoria");
     }
 
     // Validar tipo otro
     if (formData.type === BusinessType.OTRO && !customType.trim()) {
       newErrors.customType = "Debes especificar el tipo de negocio";
+      toast.error("Debes especificar el tipo de negocio");
     }
 
     // Validaciones de administrador
     if (!formData.adminFirstName?.trim()) {
       newErrors.adminFirstName = "El nombre del administrador es obligatorio";
+      toast.error("El nombre del administrador es obligatorio");
     }
     if (!formData.adminLastName?.trim()) {
       newErrors.adminLastName = "El apellido del administrador es obligatorio";
+      toast.error("El apellido del administrador es obligatorio");
     }
 
     setErrors(newErrors);
