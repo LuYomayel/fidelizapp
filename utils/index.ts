@@ -185,10 +185,10 @@ export const removerDeLocalStorage = (clave: string): void => {
 // ======= CONSTANTES ÚTILES =======
 
 export const CLAVES_LOCALSTORAGE = {
-  CLIENTE_ACTUAL: "firulapp_cliente_actual",
-  ADMIN_ACTUAL: "firulapp_admin_actual",
-  TEMA_PREFERIDO: "firulapp_tema",
-  CONFIGURACION_UI: "firulapp_config_ui",
+  CLIENTE_ACTUAL: "Stampia_cliente_actual",
+  ADMIN_ACTUAL: "Stampia_admin_actual",
+  TEMA_PREFERIDO: "Stampia_tema",
+  CONFIGURACION_UI: "Stampia_config_ui",
 } as const;
 
 export const MENSAJES = {

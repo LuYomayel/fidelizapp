@@ -14,7 +14,7 @@ export default function Document() {
 
         {/* Meta tags adicionales */}
         <meta name="robots" content="index, follow" />
-        <meta name="author" content="FirulApp Team" />
+        <meta name="author" content="Stampia Team" />
 
         {/* PWA meta tags */}
         <link rel="manifest" href="/manifest.json" />

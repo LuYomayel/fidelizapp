@@ -439,9 +439,7 @@ export default function BusinessProfilePage() {
   const handleDownloadQR = () => {
     if (qrData?.qrCode) {
       const link = document.createElement("a");
-      link.download = `qr-negocio-${
-        business?.businessName || "stampia"
-      }.png`;
+      link.download = `qr-negocio-${business?.businessName || "stampia"}.png`;
       link.href = qrData.qrCode;
       link.click();
     }
@@ -520,13 +518,14 @@ export default function BusinessProfilePage() {
                       Teléfono Interno &nbsp;
                     </Label>
                     <small className="text-gray-500">
-                      (Usado internamente por Fidelizapp – puede ser el mismo
-                      que el externo)
+                      (Usado internamente por Stampia – puede ser el mismo que
+                      el externo)
                     </small>
                     <Input
                       id="internalPhone"
                       placeholder="Teléfono interno"
                       value={formData.internalPhone}
+                      maxLength={11}
                       onChange={(e) =>
                         handleChange("internalPhone", e.target.value)
                       }
@@ -540,6 +539,7 @@ export default function BusinessProfilePage() {
                       id="externalPhone"
                       placeholder="Teléfono para clientes"
                       value={formData.externalPhone}
+                      maxLength={11}
                       onChange={(e) =>
                         handleChange("externalPhone", e.target.value)
                       }

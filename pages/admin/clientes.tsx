@@ -198,7 +198,7 @@ export default function ClientesPage() {
   return (
     <ProtectedRoute allowedUserTypes={["admin"]}>
       <Head>
-        <title>Clientes - FirulApp Admin</title>
+        <title>Clientes - Stampia Admin</title>
         <meta name="description" content="Gestión de clientes de tu negocio" />
       </Head>
 

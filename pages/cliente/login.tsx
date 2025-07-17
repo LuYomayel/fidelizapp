@@ -24,7 +24,7 @@ import { LoginClientDto } from "@shared";
 import { useAuth } from "@/contexts/AuthContext";
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 import PublicRoute from "@/components/shared/PublicRoute";
-
+import LandingHeader from "@/components/landing/header";
 export default function ClienteLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -109,24 +109,17 @@ export default function ClienteLogin() {
   return (
     <PublicRoute>
       <Head>
-        <title>Login Cliente | FirulApp</title>
+        <title>Login Cliente | Stampia</title>
         <meta
           name="description"
           content="Inicia sesión para acceder a tu tarjeta de sellos digital"
         />
       </Head>
-
+      <LandingHeader />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
           {/* Header */}
           <div className="text-center mb-8">
-            <Button variant="ghost" asChild className="mb-8">
-              <Link href="/">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver al inicio
-              </Link>
-            </Button>
-
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <LogIn className="w-8 h-8 text-white" />

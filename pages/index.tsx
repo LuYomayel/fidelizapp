@@ -16,7 +16,7 @@ import { Card } from "@/components/ui/card";
 import PublicRoute from "@/components/shared/PublicRoute";
 import usePWA from "@/hooks/usePWA";
 import PWAInfoCard from "@/components/pwa/PWAInfoCard";
-
+import LandingHeader from "@/components/landing/header";
 export default function LandingPage() {
   const [tipoAcceso, setTipoAcceso] = useState<"cliente" | "negocio" | null>(
     null
@@ -28,7 +28,7 @@ export default function LandingPage() {
   return (
     <PublicRoute>
       <Head>
-        <title>FirulApp - Programa de Sellos Digital</title>
+        <title>Stampia - Programa de Sellos Digital</title>
         <meta
           name="description"
           content="Conecta con tus clientes y recompensa su lealtad con un sistema de sellos digitales fácil de usar."
@@ -37,64 +37,7 @@ export default function LandingPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
         {/* Header */}
-        <header className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
-              <Heart className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-gray-900">FirulApp</span>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {/* Botón de instalación PWA */}
-            {isInstallable && !isInstalled && (
-              <Button
-                onClick={install}
-                size="sm"
-                className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium flex items-center gap-2"
-              >
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Instalar App</span>
-                <span className="sm:hidden">Instalar</span>
-              </Button>
-            )}
-
-            {/* Indicador de app instalada */}
-            {isInstalled && (
-              <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="hidden sm:inline">App Instalada</span>
-                <span className="sm:hidden">✓</span>
-              </div>
-            )}
-
-            <div className="flex flex-col sm:flex-row items-center space-x-2">
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1"
-              >
-                <Link href="/admin/login">
-                  <Users className="w-4 h-4 mr-1 text-purple-600" />
-                  Iniciar sesión Negocio
-                </Link>
-              </Button>
-              <span className="text-gray-400 text-sm hidden sm:block">|</span>
-              <Button
-                asChild
-                variant="ghost"
-                size="sm"
-                className="flex items-center gap-1"
-              >
-                <Link href="/cliente/login">
-                  <Smartphone className="w-4 h-4 sm:mr-1 text-purple-600" />
-                  Iniciar sesión Cliente
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </header>
+        <LandingHeader />
 
         {/* Hero */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
@@ -189,8 +132,8 @@ export default function LandingPage() {
                   Para Negocios
                 </h3>
                 <p className="mb-4 text-white/90">
-                  Configura tu programa de sellos y comienza a emitir
-                  sellos digitales
+                  Configura tu programa de sellos y comienza a emitir sellos
+                  digitales
                 </p>
                 <ul className="text-sm space-y-1 mb-6 text-left text-white/80">
                   <li>✓ Panel de administración</li>
@@ -236,7 +179,7 @@ export default function LandingPage() {
         <section id="como-funciona" className="py-20 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              ¿Cómo funciona FirulApp?
+              ¿Cómo funciona Stampia?
             </h2>
             <p className="text-xl text-gray-600">
               Un proceso simple y efectivo para fidelizar a tus clientes
@@ -325,7 +268,7 @@ export default function LandingPage() {
                 ¿Listo para empezar?
               </h3>
               <p className="text-gray-600 mb-6">
-                Únete a FirulApp y transforma la forma en que fidelizas a tus
+                Únete a Stampia y transforma la forma en que fidelizas a tus
                 clientes
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -363,7 +306,7 @@ export default function LandingPage() {
         <footer className="bg-gray-900 text-white py-16">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid md:grid-cols-4 gap-8">
             <div>
-              <h3 className="font-bold text-lg mb-4">FirulApp</h3>
+              <h3 className="font-bold text-lg mb-4">Stampia</h3>
               <p className="text-gray-400">
                 La solución digital para programas de sellos que conecta
                 negocios con sus clientes.
@@ -387,12 +330,11 @@ export default function LandingPage() {
 
             <div>
               <h4 className="font-semibold mb-4">Contacto</h4>
-              <p className="text-gray-400">info@firulapp.com</p>
-              <p className="text-gray-400">+123 456 7890</p>
+              <p className="text-gray-400">stampia.info@gmail.com</p>
             </div>
 
             <div>
-              <h4 className="font-semibold mb-4">© 2025 FirulApp</h4>
+              <h4 className="font-semibold mb-4">© 2025 Stampia</h4>
               <p className="text-gray-400 text-sm">
                 Todos los derechos reservados.
               </p>

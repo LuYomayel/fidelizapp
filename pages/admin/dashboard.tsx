@@ -218,11 +218,8 @@ export default function AdminDashboard() {
   return (
     <ProtectedRoute allowedUserTypes={["admin"]}>
       <Head>
-        <title>Dashboard - FirulApp Admin</title>
-        <meta
-          name="description"
-          content="Panel de administración de FirulApp"
-        />
+        <title>Dashboard - Stampia Admin</title>
+        <meta name="description" content="Panel de administración de Stampia" />
       </Head>
 
       <AuthenticatedLayout>

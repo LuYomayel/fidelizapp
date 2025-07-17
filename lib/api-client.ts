@@ -425,6 +425,12 @@ export const api = {
       { data, logo }: { data: UpdateBusinessDto; logo: File }
     ) => apiClient.put(`/business/${id}`, data, logo as any),
     delete: (id: string) => apiClient.delete(`/business?id=${id}`),
+
+    // Verificación de email para negocios
+    verifyEmail: (data: { email: string; verificationCode: string }) =>
+      apiClient.post("/business/verify-email", data),
+    resendVerificationCode: (data: { email: string }) =>
+      apiClient.post("/business/resend-verification", data),
   },
   business: {
     // Configuraciones de sellos
@@ -462,6 +468,11 @@ export const api = {
       apiClient.put<IBusinessProfile>("/business/profile/update", data),
     updateLogo: (formData: FormData) =>
       apiClient.put<IBusinessProfile>("/business/profile/logo", formData),
+    firstTimeChangePassword: (data: IChangePasswordDto) =>
+      apiClient.post<{
+        business: IBusiness;
+        tokens: { accessToken: string; refreshToken: string };
+      }>("/business/profile/first-time-change-password", data),
     changePassword: (data: IChangePasswordDto) =>
       apiClient.post<void>("/business/profile/change-password", data),
     generateQR: () =>

@@ -71,7 +71,7 @@ export default function GoogleCallback() {
   return (
     <>
       <Head>
-        <title>Procesando autenticación... | FirulApp</title>
+        <title>Procesando autenticación... | Stampia</title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">

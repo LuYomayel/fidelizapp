@@ -13,7 +13,7 @@ export default function AuthError() {
   return (
     <>
       <Head>
-        <title>Error de autenticación | FirulApp</title>
+        <title>Error de autenticación | Stampia</title>
       </Head>
 
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4">

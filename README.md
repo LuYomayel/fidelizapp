@@ -1,4 +1,4 @@
-# FirulApp - Programa de Sellos Digital
+# Stampia - Programa de Sellos Digital
 
 Una aplicación web de sellos digital tipo "tarjeta digital" para negocios físicos como cafeterías, barberías, almacenes o gimnasios.
 
@@ -62,4 +62,5 @@ npm run dev
 ## Licencia
 
 Privado - Todos los derechos reservados
+
 # stampia

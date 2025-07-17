@@ -34,28 +34,54 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import LandingHeader from "@/components/landing/header";
+import { toast } from "react-hot-toast";
 export default function RegistroNegocio() {
   const { login } = useAuth();
-  const [formData, setFormData] = useState<IBusiness>({
-    businessName: "",
-    email: "",
-    internalPhone: "",
-    externalPhone: "",
-    size: BusinessSize.SMALL,
+  const [env, setEnv] = useState<string>(
+    process.env.NEXT_PUBLIC_ENV || "production"
+  );
+  const [formData, setFormData] = useState<IBusiness>(
+    env === "development"
+      ? {
+          businessName: "Test",
+          email: "l.yomayel@gmail.com",
+          internalPhone: "1234567890",
+          externalPhone: "1234567890",
+          size: BusinessSize.SMALL,
 
-    street: "",
-    neighborhood: "",
-    postalCode: "",
-    province: "",
+          street: "Test",
+          neighborhood: "Test",
+          postalCode: "1234567890",
+          province: "CABA",
 
-    type: BusinessType.CAFETERIA,
+          type: BusinessType.CAFETERIA,
 
-    instagram: "",
-    tiktok: "",
-    website: "",
-    password: "",
-  });
+          instagram: "test",
+          tiktok: "test",
+          website: "test",
+          password: "test",
+        }
+      : {
+          businessName: "",
+          email: "",
+          internalPhone: "",
+          externalPhone: "",
+          size: BusinessSize.SMALL,
+
+          street: "",
+          neighborhood: "",
+          postalCode: "",
+          province: "",
+
+          type: BusinessType.CAFETERIA,
+
+          instagram: "",
+          tiktok: "",
+          website: "",
+          password: "",
+        }
+  );
 
   const [customType, setCustomType] = useState("");
 
@@ -135,6 +161,7 @@ export default function RegistroNegocio() {
     }
 
     setIsLoading(true);
+    setErrors({}); // Limpiar errores previos
 
     try {
       // Construir FormData para envío multipart
@@ -164,37 +191,81 @@ export default function RegistroNegocio() {
       if (formData.website) formDataToSend.append("website", formData.website);
       if (logoFile) formDataToSend.append("logo", logoFile);
 
+      // Agregar campos de administrador (temporal hasta implementar en formulario)
+      formDataToSend.append("adminFirstName", "Administrador");
+      formDataToSend.append("adminLastName", "Principal");
+
       const response: any = await api.businesses.register(formDataToSend);
+
+      // Verificar que la respuesta existe y es válida
+      if (!response) {
+        throw new Error(
+          "No se recibió respuesta del servidor. Verifica tu conexión a internet."
+        );
+      }
+
       if (!response.success) {
         throw new Error(response.message || "Error en el registro");
       }
 
-      // Login automático con los datos recibidos
-      if (response.data && response.data.tokens && response.data.business) {
-        login({
-          tokens: response.data.tokens,
-          user: response.data.business,
-          userType: "admin",
-        });
-
+      // Redirigir a verificación de email
+      if (response.data && response.data.business && response.data.emailSent) {
         setRegistroExitoso(true);
-
-        // Redirigir al dashboard después de un momento
+        toast.success("Registro exitoso. Por favor verifica tu email.");
+        // Redirigir a verificación de email después de un momento
         setTimeout(() => {
-          router.push("/admin/dashboard");
+          router.push(
+            `/admin/verificar-email?email=${encodeURIComponent(
+              response.data.business.email
+            )}`
+          );
+        }, 2000);
+      } else if (
+        response.data &&
+        response.data.business &&
+        !response.data.emailSent
+      ) {
+        setRegistroExitoso(true);
+        toast.success(
+          "Registro exitoso. Hubo un error al enviar el email de verificación. Haz click en Reenviar código."
+        );
+        setTimeout(() => {
+          router.push(
+            `/admin/verificar-email?email=${encodeURIComponent(
+              response.data.business.email
+            )}`
+          );
         }, 2000);
       } else {
-        // Fallback si no vienen los tokens (compatibilidad)
+        // Fallback si no vienen los datos esperados
         setRegistroExitoso(true);
         setTimeout(() => {
-          router.push("/admin/login");
+          router.push("/admin/verificar-email");
         }, 3000);
       }
     } catch (error: any) {
-      console.log(error);
-      // @ts-ignore
+      console.error("Error en registro:", error);
+
+      // Manejo específico de errores de conexión
+      let errorMessage = "Error al registrar. Intenta nuevamente.";
+
+      if (error.message) {
+        // Si es un error de conexión
+        if (
+          error.message.includes("conexión") ||
+          error.message.includes("connection") ||
+          error.message.includes("fetch")
+        ) {
+          errorMessage =
+            "No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta nuevamente.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      // Mostrar el error en el campo de email (es visible y relevante)
       setErrors({
-        email: error.message || "Error al registrar. Intenta nuevamente.",
+        email: errorMessage,
       });
     } finally {
       setIsLoading(false);
@@ -253,11 +324,12 @@ export default function RegistroNegocio() {
     }
   };
 
+  /*
   if (registroExitoso) {
     return (
       <>
         <Head>
-          <title>Registro Exitoso | FirulApp</title>
+          <title>Registro Exitoso | Stampia</title>
         </Head>
 
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4">
@@ -275,13 +347,13 @@ export default function RegistroNegocio() {
                 </CardTitle>
 
                 <CardDescription className="mb-6">
-                  Tu negocio ha sido registrado correctamente y se ha iniciado
-                  sesión automáticamente. Serás redirigido al panel de
-                  administración en unos segundos...
+                  Tu negocio ha sido registrado correctamente. Hemos enviado un
+                  código de verificación a tu email. Serás redirigido a la
+                  página de verificación en unos segundos...
                 </CardDescription>
 
                 <Button asChild>
-                  <Link href="/admin/dashboard">Ir al Panel de Admin</Link>
+                  <Link href="/admin/verificar-email">Verificar Email</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -290,28 +362,21 @@ export default function RegistroNegocio() {
       </>
     );
   }
-
+  */
   return (
     <>
       <Head>
-        <title>Registro de Negocio | FirulApp</title>
+        <title>Registro de Negocio | Stampia</title>
         <meta
           name="description"
           content="Registra tu negocio para comenzar tu programa de sellos digital"
         />
       </Head>
-
+      <LandingHeader />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <Button variant="ghost" asChild className="mb-8">
-              <Link href="/">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver al inicio
-              </Link>
-            </Button>
-
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Building2 className="w-8 h-8 text-white" />
@@ -390,8 +455,8 @@ export default function RegistroNegocio() {
                         Teléfono Interno &nbsp;
                       </Label>
                       <small className="text-gray-500">
-                        (Usado internamente por Fidelizapp – puede ser el mismo
-                        que el externo)
+                        (Usado internamente por Stampia – puede ser el mismo que
+                        el externo)
                       </small>
                       <Input
                         id="telefonoInterno"
@@ -399,6 +464,7 @@ export default function RegistroNegocio() {
                         onChange={(e) =>
                           handleChange("internalPhone", e.target.value)
                         }
+                        maxLength={11}
                         className={errors.internalPhone ? "border-red-500" : ""}
                         placeholder="+54 11 1234-5678"
                       />
@@ -422,6 +488,7 @@ export default function RegistroNegocio() {
                         onChange={(e) =>
                           handleChange("externalPhone", e.target.value)
                         }
+                        maxLength={11}
                         className={errors.externalPhone ? "border-red-500" : ""}
                         placeholder="+54 11 1234-5678"
                       />

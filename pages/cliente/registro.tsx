@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
+import LandingHeader from "@/components/landing/header";
 // Componente Google OAuth
 import GoogleSignInButton from "@/components/auth/GoogleSignInButton";
 
@@ -131,9 +131,9 @@ export default function ClienteRegistro() {
     return (
       <>
         <Head>
-          <title>Registro Exitoso | FirulApp</title>
+          <title>Registro Exitoso | Stampia</title>
         </Head>
-
+        <LandingHeader />
         <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-green-50 flex items-center justify-center p-4">
           <div className="max-w-md w-full">
             <Card className="text-center">
@@ -167,7 +167,7 @@ export default function ClienteRegistro() {
   return (
     <>
       <Head>
-        <title>Registro Cliente | FirulApp</title>
+        <title>Registro Cliente | Stampia</title>
         <meta
           name="description"
           content="Crea tu cuenta para comenzar a acumular puntos en tus negocios favoritos"
@@ -178,13 +178,6 @@ export default function ClienteRegistro() {
         <div className="max-w-md mx-auto">
           {/* Header */}
           <div className="text-center mb-8">
-            <Button variant="ghost" asChild className="mb-8">
-              <Link href="/">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver al inicio
-              </Link>
-            </Button>
-
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <UserPlus className="w-8 h-8 text-white" />

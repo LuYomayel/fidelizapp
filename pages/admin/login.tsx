@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import LandingHeader from "@/components/landing/header";
 
 // TODO: Importar contexto de admin cuando esté listo
 // import { useAdmin } from '@/contexts/AdminContext';
@@ -42,6 +43,8 @@ export default function AdminLogin() {
       const response = (await api.businesses.login(data)) as {
         success: boolean;
         message: string;
+        needsVerification?: boolean;
+        mustChangePassword?: boolean;
         data: {
           business: IBusiness;
           token: string;
@@ -50,8 +53,16 @@ export default function AdminLogin() {
       };
 
       if (!response.success) {
+        if (response.needsVerification) {
+          // Redirigir a verificación de email
+          router.push(
+            `/admin/verificar-email?email=${encodeURIComponent(formData.email)}`
+          );
+          return;
+        }
         throw new Error(response.message || "Error al iniciar sesión");
       }
+
       console.log("response.data", response.data);
       login({
         userType: "admin",
@@ -62,8 +73,13 @@ export default function AdminLogin() {
         },
       });
 
-      // Redirigir al dashboard
-      router.push("/admin/dashboard");
+      // Verificar si necesita cambiar contraseña
+      if (response.mustChangePassword) {
+        router.push("/admin/cambiar-password");
+      } else {
+        // Redirigir al dashboard
+        router.push("/admin/dashboard");
+      }
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión. Intenta nuevamente.");
     } finally {
@@ -81,25 +97,17 @@ export default function AdminLogin() {
   return (
     <>
       <Head>
-        <title>Iniciar Sesión - Administrador | FirulApp</title>
+        <title>Iniciar Sesión - Administrador | Stampia</title>
         <meta
           name="description"
           content="Accede al panel de administración de tu negocio"
         />
       </Head>
-
+      <LandingHeader />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <Link
-              href="/"
-              className="inline-flex items-center text-primary-600 hover:text-primary-700 mb-8"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver al inicio
-            </Link>
-
             <div className="flex justify-center mb-6">
               <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                 <Shield className="w-8 h-8 text-white" />

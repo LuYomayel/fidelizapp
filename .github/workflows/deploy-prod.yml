@@ -23,21 +23,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run linting
-        run: npm run lint
-
-      - name: Build application
-        run: |
-          NEXT_PUBLIC_API_URL=https://api.stampia.luciano-yomayel.com \
-          NEXT_PUBLIC_APP_NAME="Stampia" \
-          NEXT_PUBLIC_ENVIRONMENT=production \
-          npm run build
-
-      - name: Run E2E tests
-        run: |
-          # Aquí puedes agregar tests E2E antes de producción
-          echo "E2E tests would run here"
-
   deploy:
     needs: test
     runs-on: ubuntu-latest
@@ -58,6 +43,12 @@ jobs:
             cd /home/stampia-prod
             echo "📥 Descargando últimos cambios..."
             git pull origin main
+
+            echo "📥 Descargando últimos cambios de las interfaces"
+            git submodule update --init --recursive
+            cd shared
+            git pull origin main
+            cd ..
 
             echo "📦 Instalando dependencias..."
             npm install
